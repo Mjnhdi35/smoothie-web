@@ -3,5 +3,7 @@ packages:
   - libs/*
 
 onlyBuiltDependencies:
+  - '@nestjs/core'
   - '@parcel/watcher'
   - esbuild
+  - unrs-resolver

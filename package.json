@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "Smoothie Monorepo",
   "private": true,
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "scripts": {},
   "keywords": [
     "NodeJS",
     "Typescript",
@@ -14,5 +12,8 @@
   ],
   "author": "mangoog",
   "license": "MIT",
-  "packageManager": "pnpm@10.30.3"
+  "packageManager": "pnpm@10.30.3",
+  "devDependencies": {
+    "prettier": "^3.8.1"
+  }
 }
