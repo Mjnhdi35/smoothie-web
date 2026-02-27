@@ -1,0 +1,18 @@
+{
+  "name": "smoothie",
+  "version": "1.0.0",
+  "description": "Smoothie Monorepo",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "NodeJS",
+    "Typescript",
+    "NestJS",
+    "NuxtJS"
+  ],
+  "author": "mangoog",
+  "license": "MIT",
+  "packageManager": "pnpm@10.30.3"
+}
