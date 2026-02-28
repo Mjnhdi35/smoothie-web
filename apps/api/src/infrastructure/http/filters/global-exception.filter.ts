@@ -8,10 +8,14 @@ import {
 import type { Request, Response } from 'express';
 
 interface ErrorResponse {
+  success: false;
   statusCode: number;
+  requestId?: string;
   path: string;
   timestamp: string;
-  message: string | string[];
+  error: {
+    message: string | string[];
+  };
 }
 
 @Catch()
@@ -26,7 +30,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const payload = this.buildPayload(exception, status, request.url);
+    const payload = this.buildPayload(
+      exception,
+      status,
+      request.url,
+      request.header('x-request-id'),
+    );
     response.status(status).json(payload);
   }
 
@@ -34,16 +43,21 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     exception: unknown,
     statusCode: number,
     path: string,
+    requestId?: string,
   ): ErrorResponse {
     if (exception instanceof HttpException) {
       const responseBody = exception.getResponse();
 
       if (typeof responseBody === 'string') {
         return {
+          success: false,
           statusCode,
+          requestId,
           path,
           timestamp: new Date().toISOString(),
-          message: responseBody,
+          error: {
+            message: responseBody,
+          },
         };
       }
 
@@ -55,19 +69,27 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         const message = (responseBody as { message: string | string[] })
           .message;
         return {
+          success: false,
           statusCode,
+          requestId,
           path,
           timestamp: new Date().toISOString(),
-          message,
+          error: {
+            message,
+          },
         };
       }
     }
 
     return {
+      success: false,
       statusCode,
+      requestId,
       path,
       timestamp: new Date().toISOString(),
-      message: 'Internal server error',
+      error: {
+        message: 'Internal server error',
+      },
     };
   }
 }

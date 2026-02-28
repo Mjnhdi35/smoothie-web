@@ -10,6 +10,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { Roles } from '../../common/auth/roles.decorator';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -23,6 +24,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
+  @Roles('admin', 'staff')
   create(@Body() createUserDto: CreateUserDto): Promise<UserRow> {
     return this.usersService.create(createUserDto);
   }
@@ -38,6 +40,7 @@ export class UsersController {
   }
 
   @Patch(':id')
+  @Roles('admin', 'staff')
   update(
     @Param('id', UUID_V4_PIPE) id: UserId,
     @Body() updateUserDto: UpdateUserDto,
@@ -46,12 +49,14 @@ export class UsersController {
   }
 
   @Patch(':id/restore')
+  @Roles('admin')
   restore(@Param('id', UUID_V4_PIPE) id: UserId): Promise<UserRow> {
     return this.usersService.restore(id);
   }
 
   @Delete(':id')
   @HttpCode(204)
+  @Roles('admin')
   async remove(@Param('id', UUID_V4_PIPE) id: UserId): Promise<void> {
     await this.usersService.remove(id);
   }

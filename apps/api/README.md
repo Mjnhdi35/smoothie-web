@@ -56,6 +56,9 @@ Required:
 
 Optional:
 - `REDIS_URL`
+- `LOG_LEVEL`
+- `CORS_ORIGINS`
+- `JSON_BODY_LIMIT_BYTES`
 - `RATE_LIMIT_WINDOW_MS`
 - `RATE_LIMIT_MAX`
 - `CHAT_WS_PORT`
@@ -133,6 +136,12 @@ Default demo credentials:
 pnpm --filter @smoothie/api start:dev
 pnpm --filter @smoothie/api start:prod
 ```
+
+## CI & Container
+
+- CI workflow: `.github/workflows/api-ci.yml`
+- Docker image: `apps/api/Dockerfile`
+- Context excludes: `.dockerignore`
 
 ## API Examples
 
@@ -221,8 +230,19 @@ pnpm --filter @smoothie/api tsc
 pnpm --filter @smoothie/api test
 ```
 
+## Performance Tooling
+
+```bash
+pnpm --filter @smoothie/api benchmark:http
+pnpm --filter @smoothie/api benchmark:event-loop
+pnpm --filter @smoothie/api profile:heap
+pnpm --filter @smoothie/api db:explain -- "SELECT * FROM users LIMIT 10"
+```
+
+Runbook:
+- `docs/production-runbook.md`
+
 ## Tradeoffs
 
 - Redis is currently the event transport for internal domain events and chat fan-out. Adapter boundary exists so Kafka can replace it later.
-- Raw `ws` server is used due dependency/network constraints in this environment; gateway logic is isolated in module so migration to Nest WebSocket gateway is straightforward.
-- Compression middleware is intentionally disabled to avoid sync CPU spikes on low-resource free tiers.
+- Raw `ws` server is used for lightweight realtime path; gateway logic is isolated for future adapter replacement.

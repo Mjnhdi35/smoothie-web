@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { KnexService } from '../../infrastructure/database/knex.service';
 import { REDIS } from '../../infrastructure/redis/redis.module';
 import type { RedisClient } from '../../infrastructure/redis/redis.module';
@@ -13,6 +14,7 @@ interface ServiceHealth {
 
 export interface HealthStatus {
   status: 'ok' | 'degraded';
+  version: string;
   timestamp: string;
   services: {
     postgres: ServiceHealth;
@@ -24,6 +26,7 @@ export interface HealthStatus {
 export class HealthService {
   constructor(
     private readonly knexService: KnexService,
+    private readonly configService: ConfigService,
     @Inject(REDIS) private readonly redisClient: RedisClient,
   ) {}
 
@@ -41,6 +44,7 @@ export class HealthService {
 
     return {
       status,
+      version: this.configService.get<string>('APP_VERSION') ?? '0.0.1',
       timestamp: new Date().toISOString(),
       services: {
         postgres,
@@ -49,9 +53,17 @@ export class HealthService {
     };
   }
 
-  async readiness(): Promise<{ status: 'ready' }> {
+  async readiness(): Promise<{ status: 'ready'; version: string }> {
     await this.knexService.raw('SELECT 1');
-    return { status: 'ready' };
+
+    if (this.redisClient !== null) {
+      await this.redisClient.ping();
+    }
+
+    return {
+      status: 'ready',
+      version: this.configService.get<string>('APP_VERSION') ?? '0.0.1',
+    };
   }
 
   private async checkPostgres(): Promise<ServiceHealth> {

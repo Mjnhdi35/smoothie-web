@@ -6,6 +6,7 @@ describe('HealthController', () => {
   it('should return health payload when status is ok', async () => {
     const healthPayload: HealthStatus = {
       status: 'ok',
+      version: '0.0.1',
       timestamp: '2026-01-01T00:00:00.000Z',
       services: {
         postgres: { status: 'up', latencyMs: 5 },
@@ -25,6 +26,7 @@ describe('HealthController', () => {
   it('should throw 503 when status is degraded', async () => {
     const healthPayload: HealthStatus = {
       status: 'degraded',
+      version: '0.0.1',
       timestamp: '2026-01-01T00:00:00.000Z',
       services: {
         postgres: { status: 'down', message: 'postgres down' },

@@ -1,14 +1,23 @@
+import type { ConfigService } from '@nestjs/config';
 import { HealthService } from './health.service';
 import type { KnexService } from '../../infrastructure/database/knex.service';
 import type { RedisClient } from '../../infrastructure/redis/redis.module';
 
 describe('HealthService', () => {
+  const configServiceMock = {
+    get: jest.fn().mockReturnValue('0.0.1'),
+  } as unknown as ConfigService;
+
   it('should return ok when postgres is up and redis is disabled', async () => {
     const knexServiceMock = {
       raw: jest.fn().mockResolvedValue({}),
     } as unknown as KnexService;
 
-    const healthService = new HealthService(knexServiceMock, null);
+    const healthService = new HealthService(
+      knexServiceMock,
+      configServiceMock,
+      null,
+    );
 
     const result = await healthService.check();
 
@@ -22,7 +31,11 @@ describe('HealthService', () => {
       raw: jest.fn().mockRejectedValue(new Error('postgres down')),
     } as unknown as KnexService;
 
-    const healthService = new HealthService(knexServiceMock, null);
+    const healthService = new HealthService(
+      knexServiceMock,
+      configServiceMock,
+      null,
+    );
 
     const result = await healthService.check();
 
@@ -39,7 +52,11 @@ describe('HealthService', () => {
       ping: jest.fn().mockRejectedValue(new Error('redis down')),
     } as unknown as RedisClient;
 
-    const healthService = new HealthService(knexServiceMock, redisMock);
+    const healthService = new HealthService(
+      knexServiceMock,
+      configServiceMock,
+      redisMock,
+    );
 
     const result = await healthService.check();
 

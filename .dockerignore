@@ -1,0 +1,13 @@
+.git
+.gitignore
+node_modules
+**/node_modules
+**/dist
+**/coverage
+**/.env
+**/.env.*
+.vscode
+.nyc_output
+*.log
+**/test
+**/docs

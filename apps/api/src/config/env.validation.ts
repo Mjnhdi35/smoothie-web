@@ -2,9 +2,13 @@ import { normalizeDatabaseUrl } from './database-url';
 
 export type RuntimeEnv = {
   NODE_ENV: 'development' | 'test' | 'production';
+  LOG_LEVEL?: 'fatal' | 'error' | 'warn' | 'log' | 'debug' | 'verbose';
   PORT: number;
+  APP_VERSION: string;
   DATABASE_URL: string;
   REDIS_URL?: string;
+  CORS_ORIGINS: string[];
+  JSON_BODY_LIMIT_BYTES: number;
   RATE_LIMIT_WINDOW_MS: number;
   RATE_LIMIT_MAX: number;
   CHAT_WS_PORT: number;
@@ -62,6 +66,18 @@ function getPositiveInt(
   return value;
 }
 
+function getOptionalCsvList(env: NodeJS.ProcessEnv, key: string): string[] {
+  const raw = env[key];
+  if (raw === undefined || raw.trim() === '') {
+    return [];
+  }
+
+  return raw
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item !== '');
+}
+
 function getNodeEnv(env: NodeJS.ProcessEnv): RuntimeEnv['NODE_ENV'] {
   const nodeEnv = (
     env.NODE_ENV ?? 'development'
@@ -74,6 +90,32 @@ function getNodeEnv(env: NodeJS.ProcessEnv): RuntimeEnv['NODE_ENV'] {
   return nodeEnv;
 }
 
+function getLogLevel(
+  env: NodeJS.ProcessEnv,
+): RuntimeEnv['LOG_LEVEL'] | undefined {
+  const value = env.LOG_LEVEL;
+
+  if (value === undefined || value.trim() === '') {
+    return undefined;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  const allowed: Array<NonNullable<RuntimeEnv['LOG_LEVEL']>> = [
+    'fatal',
+    'error',
+    'warn',
+    'log',
+    'debug',
+    'verbose',
+  ];
+
+  if (!allowed.includes(normalized as NonNullable<RuntimeEnv['LOG_LEVEL']>)) {
+    throw new Error(`Invalid LOG_LEVEL value: ${value}`);
+  }
+
+  return normalized as RuntimeEnv['LOG_LEVEL'];
+}
+
 export function validateEnv(env: NodeJS.ProcessEnv): RuntimeEnv {
   const redisUrl = env.REDIS_URL;
   const normalizedRedisUrl =
@@ -83,9 +125,17 @@ export function validateEnv(env: NodeJS.ProcessEnv): RuntimeEnv {
 
   return {
     NODE_ENV: getNodeEnv(env),
+    LOG_LEVEL: getLogLevel(env),
     PORT: getPort(env),
+    APP_VERSION: (env.APP_VERSION ?? '0.0.1').trim(),
     DATABASE_URL: getDatabaseUrl(env),
     REDIS_URL: normalizedRedisUrl,
+    CORS_ORIGINS: getOptionalCsvList(env, 'CORS_ORIGINS'),
+    JSON_BODY_LIMIT_BYTES: getPositiveInt(
+      env,
+      'JSON_BODY_LIMIT_BYTES',
+      1048576,
+    ),
     RATE_LIMIT_WINDOW_MS: getPositiveInt(env, 'RATE_LIMIT_WINDOW_MS', 60000),
     RATE_LIMIT_MAX: getPositiveInt(env, 'RATE_LIMIT_MAX', 100),
     CHAT_WS_PORT: getPositiveInt(env, 'CHAT_WS_PORT', 3101),

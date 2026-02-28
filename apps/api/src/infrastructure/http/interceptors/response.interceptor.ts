@@ -7,6 +7,9 @@ import {
 import { map, type Observable } from 'rxjs';
 
 interface SuccessResponse<TData> {
+  success: true;
+  statusCode: number;
+  requestId?: string;
   data: TData;
   timestamp: string;
   path: string;
@@ -21,7 +24,10 @@ export class ResponseInterceptor<TData> implements NestInterceptor<
     context: ExecutionContext,
     next: CallHandler<TData>,
   ): Observable<SuccessResponse<TData>> {
-    const request = context.switchToHttp().getRequest<{ url: string }>();
+    const request = context.switchToHttp().getRequest<{
+      url: string;
+      requestId?: string;
+    }>();
     const response = context
       .switchToHttp()
       .getResponse<{ statusCode: number }>();
@@ -33,6 +39,9 @@ export class ResponseInterceptor<TData> implements NestInterceptor<
         }
 
         return {
+          success: true,
+          statusCode: response.statusCode,
+          requestId: request.requestId,
           data,
           timestamp: new Date().toISOString(),
           path: request.url,
