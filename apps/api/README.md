@@ -57,6 +57,30 @@ $ pnpm run test:e2e
 $ pnpm run test:cov
 ```
 
+## Database (Knex + PostgreSQL)
+
+`DATABASE_URL` is required in `.env` for runtime and migrations.
+`REDIS_URL` is optional; set it when Redis Cloud is enabled.
+
+```bash
+# create a migration file
+$ pnpm run migrate:make -- create_users_table
+
+# run pending migrations
+$ pnpm run migrate:latest
+
+# rollback last migration batch
+$ pnpm run migrate:rollback
+```
+
+### Module Pattern (No CQRS / No Hexagon)
+
+Use simple layered flow:
+
+1. `controller` handles HTTP.
+2. `service` contains business rules.
+3. `repository` performs Knex queries.
+
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.

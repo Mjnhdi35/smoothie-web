@@ -17,7 +17,9 @@ export default tseslint.config(
       },
       sourceType: 'commonjs',
       parserOptions: {
-        projectService: true,
+        projectService: {
+          allowDefaultProject: ['eslint.config.mjs'],
+        },
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -40,6 +42,13 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'off',
+    },
+  },
+  {
+    files: ['src/database/migrations/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
     },
   },
 );

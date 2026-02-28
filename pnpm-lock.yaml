@@ -19,13 +19,28 @@ importers:
     dependencies:
       '@nestjs/common':
         specifier: ^11.1.14
-        version: 11.1.14(reflect-metadata@0.2.2)(rxjs@7.8.2)
+        version: 11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/config':
+        specifier: ^4.0.3
+        version: 4.0.3(@nestjs/common@11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^11.1.14
-        version: 11.1.14(@nestjs/common@11.1.14(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.14)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+        version: 11.1.14(@nestjs/common@11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.14)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/platform-express':
         specifier: ^11.1.14
-        version: 11.1.14(@nestjs/common@11.1.14(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.14)
+        version: 11.1.14(@nestjs/common@11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.14)
+      class-transformer:
+        specifier: ^0.5.1
+        version: 0.5.1
+      class-validator:
+        specifier: ^0.15.1
+        version: 0.15.1
+      knex:
+        specifier: ^3.1.0
+        version: 3.1.0(pg@8.19.0)
+      pg:
+        specifier: ^8.19.0
+        version: 8.19.0
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -47,7 +62,7 @@ importers:
         version: 11.0.9(chokidar@4.0.3)(typescript@5.9.3)
       '@nestjs/testing':
         specifier: ^11.1.14
-        version: 11.1.14(@nestjs/common@11.1.14(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.14)(@nestjs/platform-express@11.1.14)
+        version: 11.1.14(@nestjs/common@11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.14)(@nestjs/platform-express@11.1.14)
       '@types/express':
         specifier: ^5.0.6
         version: 5.0.6
@@ -57,9 +72,15 @@ importers:
       '@types/node':
         specifier: ^22.19.13
         version: 22.19.13
+      '@types/pg':
+        specifier: ^8.16.0
+        version: 8.16.0
       '@types/supertest':
         specifier: ^6.0.3
         version: 6.0.3
+      dotenv:
+        specifier: ^17.3.1
+        version: 17.3.1
       eslint:
         specifier: ^9.39.3
         version: 9.39.3(jiti@2.6.1)
@@ -1019,6 +1040,12 @@ packages:
         optional: true
       class-validator:
         optional: true
+
+  '@nestjs/config@4.0.3':
+    resolution: {integrity: sha512-FQ3M3Ohqfl+nHAn5tp7++wUQw0f2nAk+SFKe8EpNRnIifPqvfJP6JQxPKtFLMOHbyer4X646prFG4zSRYEssQQ==}
+    peerDependencies:
+      '@nestjs/common': ^10.0.0 || ^11.0.0
+      rxjs: ^7.1.0
 
   '@nestjs/core@11.1.14':
     resolution: {integrity: sha512-7OXPPMoDr6z+5NkoQKu4hOhfjz/YYqM3bNilPqv1WVFWrzSmuNXxvhbX69YMmNmRYascPXiwESqf5jJdjKXEww==}
@@ -2398,6 +2425,9 @@ packages:
   '@types/node@22.19.13':
     resolution: {integrity: sha512-akNQMv0wW5uyRpD2v2IEyRSZiR+BeGuoB6L310EgGObO44HSMNT8z1xzio28V8qOrgYaopIDNA18YgdXd+qTiw==}
 
+  '@types/pg@8.16.0':
+    resolution: {integrity: sha512-RmhMd/wD+CF8Dfo+cVIy3RR5cl8CyfXQ0tGgW6XBL8L4LM/UTEbNXYRbLwU6w+CgrKBNbrQWt4FUtTfaU5jSYQ==}
+
   '@types/qs@6.14.0':
     resolution: {integrity: sha512-eOunJqu0K1923aExK6y8p6fsihYEn/BYuQ4g0CxAAgFc4b/ZLN4CrsRZ55srTdqoiLzU2B2evC+apEIxprEzkQ==}
 
@@ -2421,6 +2451,9 @@ packages:
 
   '@types/supertest@6.0.3':
     resolution: {integrity: sha512-8WzXq62EXFhJ7QsH3Ocb/iKQ/Ty9ZVWnVzoTKc9tyyFRRF3a74Tk2+TLFgaFFw364Ere+npzHKEJ6ga2LzIL7w==}
+
+  '@types/validator@13.15.10':
+    resolution: {integrity: sha512-T8L6i7wCuyoK8A/ZeLYt1+q0ty3Zb9+qbSSvrIVitzT3YjZqkTZ40IbRsPanlB4h1QB3JVL1SYCdR6ngtFYcuA==}
 
   '@types/web-bluetooth@0.0.20':
     resolution: {integrity: sha512-g9gZnnXVq7gM7v3tJCWV/qw7w+KeOlSHAhgF9RytFyifW6AF61hdT2ucrYhPq9hLs5JIryeupHV3qGk95dH9ow==}
@@ -3208,6 +3241,12 @@ packages:
   cjs-module-lexer@2.2.0:
     resolution: {integrity: sha512-4bHTS2YuzUvtoLjdy+98ykbNB5jS0+07EvFNXerqZQJ89F7DI6ET7OQo/HJuW6K0aVsKA9hj9/RVb2kQVOrPDQ==}
 
+  class-transformer@0.5.1:
+    resolution: {integrity: sha512-SQa1Ws6hUbfC98vKGxZH3KFY0Y1lm5Zm0SY8XX9zbK7FJCyVEac3ATW0RIpwzW+oOfmHE5PMPufDG9hCfoEOMw==}
+
+  class-validator@0.15.1:
+    resolution: {integrity: sha512-LqoS80HBBSCVhz/3KloUly0ovokxpdOLR++Al3J3+dHXWt9sTKlKd4eYtoxhxyUjoe5+UcIM+5k9MIxyBWnRTw==}
+
   clean-regexp@1.0.0:
     resolution: {integrity: sha512-GfisEZEJvzKrmGWkvfhgzcz/BllN1USeqD2V6tg14OAOgaCD2Z/PUEuxnAZ/nPvmaHRG7a8y77p1T/IRQ4D1Hw==}
     engines: {node: '>=4'}
@@ -3261,12 +3300,19 @@ packages:
   colord@2.9.3:
     resolution: {integrity: sha512-jeC1axXpnb0/2nn/Y1LPuLdgXBLH7aDcHu4KEKfqw3CUhX7ZpfBSlPKyqXE6btIgEzfWtrX3/tyBCaCvXvMkOw==}
 
+  colorette@2.0.19:
+    resolution: {integrity: sha512-3tlv/dIP7FWvj3BsbHrGLJ6l/oKh1O3TcgBqMn+yyCagOxc23fyzDS6HypQbgxWbkpDnf52p1LuR4eWDQ/K9WQ==}
+
   colortranslator@5.0.0:
     resolution: {integrity: sha512-Z3UPUKasUVDFCDYAjP2fmlVRf1jFHJv1izAmPjiOa0OCIw1W7iC8PZ2GsoDa8uZv+mKyWopxxStT9q05+27h7w==}
 
   combined-stream@1.0.8:
     resolution: {integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==}
     engines: {node: '>= 0.8'}
+
+  commander@10.0.1:
+    resolution: {integrity: sha512-y4Mg2tXshplEbSGzx7amzPwKKOCGuoSRP/CjEdwwk0FOGlUbq6lKuoyDZTNZkmxHdJtp54hdfY/JUrdL7Xfdug==}
+    engines: {node: '>=14'}
 
   commander@11.1.0:
     resolution: {integrity: sha512-yPVavfyCcRhmorC7rWlkHn15b4wDVgVmBA7kV4QVBsF7kv/9TKJAbAXVTxvTnwP8HHKjRCJDClKbciiYS7p0DQ==}
@@ -3471,6 +3517,15 @@ packages:
       sqlite3:
         optional: true
 
+  debug@4.3.4:
+    resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
+    engines: {node: '>=6.0'}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
+
   debug@4.4.3:
     resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
     engines: {node: '>=6.0'}
@@ -3570,6 +3625,18 @@ packages:
   dot-prop@10.1.0:
     resolution: {integrity: sha512-MVUtAugQMOff5RnBy2d9N31iG0lNwg1qAoAOn7pOK5wf94WIaE3My2p3uwTQuvS2AcqchkcR3bHByjaM0mmi7Q==}
     engines: {node: '>=20'}
+
+  dotenv-expand@12.0.3:
+    resolution: {integrity: sha512-uc47g4b+4k/M/SeaW1y4OApx+mtLWl92l5LMPP0GNXctZqELk+YGgOPIIC5elYmUH4OuoK3JLhuRUYegeySiFA==}
+    engines: {node: '>=12'}
+
+  dotenv@16.6.1:
+    resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
+    engines: {node: '>=12'}
+
+  dotenv@17.2.3:
+    resolution: {integrity: sha512-JVUnt+DUIzu87TABbhPmNfVdBDt18BLOWjMUFJMSi/Qqg7NTYtabbvSNJGOJ7afbRuv9D/lngizHtP7QyLQ+9w==}
+    engines: {node: '>=12'}
 
   dotenv@17.3.1:
     resolution: {integrity: sha512-IO8C/dzEb6O3F9/twg6ZLXz164a2fhTnEWb95H23Dm4OuN+92NmEAlTrupP9VW6Jm3sO26tQlqyvyi4CsnY9GA==}
@@ -3850,6 +3917,10 @@ packages:
     peerDependenciesMeta:
       jiti:
         optional: true
+
+  esm@3.2.25:
+    resolution: {integrity: sha512-U1suiZ2oDVWv4zPO56S0NcR5QriEahGtdN2OR6FiOG4WJvcjBVFB0qI4+eKoWFH483PKGuLuu6V8Z4T5g63UVA==}
+    engines: {node: '>=6'}
 
   espree@10.4.0:
     resolution: {integrity: sha512-j6PAQ2uUr79PZhBjP5C5fhl8e39FmRnOjsD5lGnWrFU8i2G776tBK7+nP8KuQUTTyAZUwfQqXAgrVH5MbH9CYQ==}
@@ -4134,6 +4205,9 @@ packages:
   get-tsconfig@4.13.6:
     resolution: {integrity: sha512-shZT/QMiSHc/YBLxxOkMtgSid5HFoauqCE3/exfsEcwg1WkeqjG+V40yBbBrsD+jW2HDXcs28xOfcbm2jI8Ddw==}
 
+  getopts@2.3.0:
+    resolution: {integrity: sha512-5eDf9fuSXwxBL6q5HX+dhDj+dslFGWzU5thZ9kNKUkcPtaPdatmUFKwHFrLb/uf/WpA4BHET+AX3Scl56cAjpA==}
+
   giget@2.0.0:
     resolution: {integrity: sha512-L5bGsVkxJbJgdnwyuheIunkGatUF/zssUoxxjACCseZYAVbaqdh9Tsmmlkl8vYan09H7sbvKt4pS8GqKLBrEzA==}
     hasBin: true
@@ -4315,6 +4389,10 @@ packages:
   ini@4.1.1:
     resolution: {integrity: sha512-QQnnxNyfvmHFIsj7gkPcYymR8Jdw/o7mp5ZFihxn6h8Ci6fh3Dx4E1gPjpQEpIuPo9XVNY/ZUwh4BPMjGyL01g==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
+
+  interpret@2.2.0:
+    resolution: {integrity: sha512-Ju0Bz/cEia55xDwUWEa8+olFpCiQoypjnQySseKtmjNrnps3P+xfpUmGr90T7yjlVJmOtybRvPXhKMbHr+fWnw==}
+    engines: {node: '>= 0.10'}
 
   ioredis@5.9.3:
     resolution: {integrity: sha512-VI5tMCdeoxZWU5vjHWsiE/Su76JGhBvWF1MJnV9ZtGltHk9BmD48oDq8Tj8haZ85aceXZMxLNDQZRVo5QKNgXA==}
@@ -4661,6 +4739,34 @@ packages:
     resolution: {integrity: sha512-dhG34DXATL5hSxJbIexCft8FChFXtmskoZYnoPWjXQuebWYCNkVeV3KkGegCK9CP1oswI/vQibS2GY7Em/sJJA==}
     engines: {node: '>= 8'}
 
+  knex@3.1.0:
+    resolution: {integrity: sha512-GLoII6hR0c4ti243gMs5/1Rb3B+AjwMOfjYm97pu0FOQa7JH56hgBxYf5WK2525ceSbBY1cjeZ9yk99GPMB6Kw==}
+    engines: {node: '>=16'}
+    hasBin: true
+    peerDependencies:
+      better-sqlite3: '*'
+      mysql: '*'
+      mysql2: '*'
+      pg: '*'
+      pg-native: '*'
+      sqlite3: '*'
+      tedious: '*'
+    peerDependenciesMeta:
+      better-sqlite3:
+        optional: true
+      mysql:
+        optional: true
+      mysql2:
+        optional: true
+      pg:
+        optional: true
+      pg-native:
+        optional: true
+      sqlite3:
+        optional: true
+      tedious:
+        optional: true
+
   knitwork@1.3.0:
     resolution: {integrity: sha512-4LqMNoONzR43B1W0ek0fhXMsDNW/zxa1NdFAVMY+k28pgZLovR4G3PB5MrpTxCy1QaZCqNoiaKPr5w5qZHfSNw==}
 
@@ -4683,6 +4789,9 @@ packages:
     resolution: {integrity: sha512-DeXj9X5xDCjgKLU/7RR+/HQEVzuuEUiwldwOGsHK/sfAfELGWEyTcf0x+uOvCvK3O2zPmZePXWL85vtia6GyZw==}
     engines: {node: '>=16'}
     hasBin: true
+
+  libphonenumber-js@1.12.38:
+    resolution: {integrity: sha512-vwzxmasAy9hZigxtqTbFEwp8ZdZ975TiqVDwj5bKx5sR+zi5ucUQy9mbVTkKM9GzqdLdxux/hTw2nmN5J7POMA==}
 
   lightningcss-android-arm64@1.31.1:
     resolution: {integrity: sha512-HXJF3x8w9nQ4jbXRiNppBCqeZPIAfUo8zE/kOEGbW5NZvGc/K7nMxbhIr+YlFlHW5mpbg/YFPdbnCh1wAXCKFg==}
@@ -5003,6 +5112,9 @@ packages:
     resolution: {integrity: sha512-Y3wQdFg2Va6etvQ5I82yUhGdsKrcYox6p7FfL1LbK2J4V01F9TGlepTIhnK24t7koZibmg82KGglhA1XK5IsLQ==}
     engines: {node: '>=10'}
 
+  ms@2.1.2:
+    resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
+
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
@@ -5311,6 +5423,43 @@ packages:
   perfect-debounce@2.1.0:
     resolution: {integrity: sha512-LjgdTytVFXeUgtHZr9WYViYSM/g8MkcTPYDlPa3cDqMirHjKiSZPYd6DoL7pK8AJQr+uWkQvCjHNdiMqsrJs+g==}
 
+  pg-cloudflare@1.3.0:
+    resolution: {integrity: sha512-6lswVVSztmHiRtD6I8hw4qP/nDm1EJbKMRhf3HCYaqud7frGysPv7FYJ5noZQdhQtN2xJnimfMtvQq21pdbzyQ==}
+
+  pg-connection-string@2.11.0:
+    resolution: {integrity: sha512-kecgoJwhOpxYU21rZjULrmrBJ698U2RxXofKVzOn5UDj61BPj/qMb7diYUR1nLScCDbrztQFl1TaQZT0t1EtzQ==}
+
+  pg-connection-string@2.6.2:
+    resolution: {integrity: sha512-ch6OwaeaPYcova4kKZ15sbJ2hKb/VP48ZD2gE7i1J+L4MspCtBMAx8nMgz7bksc7IojCIIWuEhHibSMFH8m8oA==}
+
+  pg-int8@1.0.1:
+    resolution: {integrity: sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==}
+    engines: {node: '>=4.0.0'}
+
+  pg-pool@3.12.0:
+    resolution: {integrity: sha512-eIJ0DES8BLaziFHW7VgJEBPi5hg3Nyng5iKpYtj3wbcAUV9A1wLgWiY7ajf/f/oO1wfxt83phXPY8Emztg7ITg==}
+    peerDependencies:
+      pg: '>=8.0'
+
+  pg-protocol@1.12.0:
+    resolution: {integrity: sha512-uOANXNRACNdElMXJ0tPz6RBM0XQ61nONGAwlt8da5zs/iUOOCLBQOHSXnrC6fMsvtjxbOJrZZl5IScGv+7mpbg==}
+
+  pg-types@2.2.0:
+    resolution: {integrity: sha512-qTAAlrEsl8s4OiEQY69wDvcMIdQN6wdz5ojQiOy6YRMuynxenON0O5oCpJI6lshc6scgAY8qvJ2On/p+CXY0GA==}
+    engines: {node: '>=4'}
+
+  pg@8.19.0:
+    resolution: {integrity: sha512-QIcLGi508BAHkQ3pJNptsFz5WQMlpGbuBGBaIaXsWK8mel2kQ/rThYI+DbgjUvZrIr7MiuEuc9LcChJoEZK1xQ==}
+    engines: {node: '>= 16.0.0'}
+    peerDependencies:
+      pg-native: '>=3.0.1'
+    peerDependenciesMeta:
+      pg-native:
+        optional: true
+
+  pgpass@1.0.5:
+    resolution: {integrity: sha512-FdW9r/jQZhSeohs1Z3sI1yxFQNFvMcnmfuj4WBMUTxOrAyLMaTcE1aAMBiTlbMNaXvBCQuVi0R7hd8udDSP7ug==}
+
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
@@ -5517,6 +5666,22 @@ packages:
     resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
     engines: {node: ^10 || ^12 || >=14}
 
+  postgres-array@2.0.0:
+    resolution: {integrity: sha512-VpZrUqU5A69eQyW2c5CA1jtLecCsN2U/bD6VilrFDWq5+5UIEVO7nazS3TEcHf1zuPYO/sqGvUvW62g86RXZuA==}
+    engines: {node: '>=4'}
+
+  postgres-bytea@1.0.1:
+    resolution: {integrity: sha512-5+5HqXnsZPE65IJZSMkZtURARZelel2oXUEO8rH83VS/hxH5vv1uHquPg5wZs8yMAfdv971IU+kcPUczi7NVBQ==}
+    engines: {node: '>=0.10.0'}
+
+  postgres-date@1.0.7:
+    resolution: {integrity: sha512-suDmjLVQg78nMK2UZ454hAG+OAW+HQPZ6n++TNDUX+L0+uUlLywnoxJKDou51Zm+zTCjrCl0Nq6J9C5hP9vK/Q==}
+    engines: {node: '>=0.10.0'}
+
+  postgres-interval@1.2.0:
+    resolution: {integrity: sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==}
+    engines: {node: '>=0.10.0'}
+
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
@@ -5672,6 +5837,10 @@ packages:
   readdirp@5.0.0:
     resolution: {integrity: sha512-9u/XQ1pvrQtYyMpZe7DXKv2p5CNvyVwzUB6uhLAnQwHMSgKMBR62lc7AHljaeteeHXn11XTAaLLUVZYVZyuRBQ==}
     engines: {node: '>= 20.19.0'}
+
+  rechoir@0.8.0:
+    resolution: {integrity: sha512-/vxpCXddiX8NGfGO/mTafwjq4aFa/71pvamip0++IQk3zG8cbCj0fifNPrjjF1XMXUne91jL9OoxmdykoEtifQ==}
+    engines: {node: '>= 10.13.0'}
 
   redis-errors@1.2.0:
     resolution: {integrity: sha512-1qny3OExCf0UvUV/5wpYKf2YwPcOqXzkwKKSmKHiE6ZMQs5heeE/c8eXK+PNllPvmjgAbfnsbpkGZWy8cBpn9w==}
@@ -5939,6 +6108,10 @@ packages:
     resolution: {integrity: sha512-1POYv7uv2gXoyGFpBCmpDVSNV74IfsWlDW216UPjbWufNf+bSU6GdbDsxdcxtfwb4xlI3yxzOTKClUosxARYrQ==}
     engines: {node: '>=0.10.0'}
 
+  split2@4.2.0:
+    resolution: {integrity: sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==}
+    engines: {node: '>= 10.x'}
+
   sprintf-js@1.0.3:
     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
 
@@ -6114,6 +6287,10 @@ packages:
     resolution: {integrity: sha512-BTLcK0xsDh2+PUe9F6c2TlRp4zOOBMTkoQHQIWSIzI0R7KG46uEwq4OPk2W7bZcprBMsuaeFsqwYr7pjh6CuHg==}
     engines: {node: '>=18'}
 
+  tarn@3.0.2:
+    resolution: {integrity: sha512-51LAVKUSZSVfI05vjPESNc5vwqqZpbXCsU+/+wxlOrUjk2SnFTt97v9ZgQrD4YmxYW1Px6w2KjaDitCfkvgxMQ==}
+    engines: {node: '>=8.0.0'}
+
   terser-webpack-plugin@5.3.16:
     resolution: {integrity: sha512-h9oBFCWrq78NyWWVcSwZarJkZ01c2AyGrzs1crmHZO3QUg9D61Wu4NPjBy69n7JqylFF5y+CsUZYmYEIZ3mR+Q==}
     engines: {node: '>= 10.13.0'}
@@ -6141,6 +6318,10 @@ packages:
 
   text-decoder@1.2.7:
     resolution: {integrity: sha512-vlLytXkeP4xvEq2otHeJfSQIRyWxo/oZGEbXrtEEF9Hnmrdly59sUbzZ/QgyWuLYHctCHxFF4tRQZNQ9k60ExQ==}
+
+  tildify@2.0.0:
+    resolution: {integrity: sha512-Cc+OraorugtXNfs50hU9KS369rFXCfgGLpfCfvlc+Ud5u6VWmUQsOAa9HbTvheQdYnrdJqqv1e5oIqXppMYnSw==}
+    engines: {node: '>=8'}
 
   tiny-inflate@1.0.3:
     resolution: {integrity: sha512-pkY1fj1cKHb2seWDy0B16HeWyczlJA9/WW3u3c4z/NiWDsO3DOU5D7nhTLE9CF0yXv/QZFY7sEJmj24dK+Rrqw==}
@@ -6498,6 +6679,10 @@ packages:
   v8-to-istanbul@9.3.0:
     resolution: {integrity: sha512-kiGUalWN+rgBJ/1OHZsBtU4rXZOfj/7rKQxULKlIzwzQSvMJUUNgPwJEEh7gU6xEVxC0ahoOBvN2YI8GH6FNgA==}
     engines: {node: '>=10.12.0'}
+
+  validator@13.15.26:
+    resolution: {integrity: sha512-spH26xU080ydGggxRyR1Yhcbgx+j3y5jbNXk/8L+iRvdIEQ4uTRH2Sgf2dokud6Q4oAtsbNvJ1Ft+9xmm6IZcA==}
+    engines: {node: '>= 0.10'}
 
   vary@1.1.2:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
@@ -7855,7 +8040,7 @@ snapshots:
       - uglify-js
       - webpack-cli
 
-  '@nestjs/common@11.1.14(reflect-metadata@0.2.2)(rxjs@7.8.2)':
+  '@nestjs/common@11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)':
     dependencies:
       file-type: 21.3.0
       iterare: 1.2.1
@@ -7864,12 +8049,23 @@ snapshots:
       rxjs: 7.8.2
       tslib: 2.8.1
       uid: 2.0.2
+    optionalDependencies:
+      class-transformer: 0.5.1
+      class-validator: 0.15.1
     transitivePeerDependencies:
       - supports-color
 
-  '@nestjs/core@11.1.14(@nestjs/common@11.1.14(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.14)(reflect-metadata@0.2.2)(rxjs@7.8.2)':
+  '@nestjs/config@4.0.3(@nestjs/common@11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2)':
     dependencies:
-      '@nestjs/common': 11.1.14(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/common': 11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      dotenv: 17.2.3
+      dotenv-expand: 12.0.3
+      lodash: 4.17.23
+      rxjs: 7.8.2
+
+  '@nestjs/core@11.1.14(@nestjs/common@11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.14)(reflect-metadata@0.2.2)(rxjs@7.8.2)':
+    dependencies:
+      '@nestjs/common': 11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nuxt/opencollective': 0.4.1
       fast-safe-stringify: 2.1.1
       iterare: 1.2.1
@@ -7879,12 +8075,12 @@ snapshots:
       tslib: 2.8.1
       uid: 2.0.2
     optionalDependencies:
-      '@nestjs/platform-express': 11.1.14(@nestjs/common@11.1.14(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.14)
+      '@nestjs/platform-express': 11.1.14(@nestjs/common@11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.14)
 
-  '@nestjs/platform-express@11.1.14(@nestjs/common@11.1.14(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.14)':
+  '@nestjs/platform-express@11.1.14(@nestjs/common@11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.14)':
     dependencies:
-      '@nestjs/common': 11.1.14(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@nestjs/core': 11.1.14(@nestjs/common@11.1.14(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.14)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/common': 11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/core': 11.1.14(@nestjs/common@11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.14)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       cors: 2.8.6
       express: 5.2.1
       multer: 2.0.2
@@ -7904,13 +8100,13 @@ snapshots:
     transitivePeerDependencies:
       - chokidar
 
-  '@nestjs/testing@11.1.14(@nestjs/common@11.1.14(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.14)(@nestjs/platform-express@11.1.14)':
+  '@nestjs/testing@11.1.14(@nestjs/common@11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.14)(@nestjs/platform-express@11.1.14)':
     dependencies:
-      '@nestjs/common': 11.1.14(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@nestjs/core': 11.1.14(@nestjs/common@11.1.14(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.14)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/common': 11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/core': 11.1.14(@nestjs/common@11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.14)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       tslib: 2.8.1
     optionalDependencies:
-      '@nestjs/platform-express': 11.1.14(@nestjs/common@11.1.14(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.14)
+      '@nestjs/platform-express': 11.1.14(@nestjs/common@11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.14)
 
   '@noble/hashes@1.8.0': {}
 
@@ -9358,6 +9554,12 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
+  '@types/pg@8.16.0':
+    dependencies:
+      '@types/node': 22.19.13
+      pg-protocol: 1.12.0
+      pg-types: 2.2.0
+
   '@types/qs@6.14.0': {}
 
   '@types/range-parser@1.2.7': {}
@@ -9386,6 +9588,8 @@ snapshots:
     dependencies:
       '@types/methods': 1.1.4
       '@types/superagent': 8.1.9
+
+  '@types/validator@13.15.10': {}
 
   '@types/web-bluetooth@0.0.20': {}
 
@@ -10255,6 +10459,14 @@ snapshots:
 
   cjs-module-lexer@2.2.0: {}
 
+  class-transformer@0.5.1: {}
+
+  class-validator@0.15.1:
+    dependencies:
+      '@types/validator': 13.15.10
+      libphonenumber-js: 1.12.38
+      validator: 13.15.26
+
   clean-regexp@1.0.0:
     dependencies:
       escape-string-regexp: 1.0.5
@@ -10301,11 +10513,15 @@ snapshots:
 
   colord@2.9.3: {}
 
+  colorette@2.0.19: {}
+
   colortranslator@5.0.0: {}
 
   combined-stream@1.0.8:
     dependencies:
       delayed-stream: 1.0.0
+
+  commander@10.0.1: {}
 
   commander@11.1.0: {}
 
@@ -10495,6 +10711,10 @@ snapshots:
 
   db0@0.3.4: {}
 
+  debug@4.3.4:
+    dependencies:
+      ms: 2.1.2
+
   debug@4.4.3:
     dependencies:
       ms: 2.1.3
@@ -10566,6 +10786,14 @@ snapshots:
   dot-prop@10.1.0:
     dependencies:
       type-fest: 5.4.4
+
+  dotenv-expand@12.0.3:
+    dependencies:
+      dotenv: 16.6.1
+
+  dotenv@16.6.1: {}
+
+  dotenv@17.2.3: {}
 
   dotenv@17.3.1: {}
 
@@ -10891,6 +11119,8 @@ snapshots:
       jiti: 2.6.1
     transitivePeerDependencies:
       - supports-color
+
+  esm@3.2.25: {}
 
   espree@10.4.0:
     dependencies:
@@ -11251,6 +11481,8 @@ snapshots:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
+  getopts@2.3.0: {}
+
   giget@2.0.0:
     dependencies:
       citty: 0.1.6
@@ -11441,6 +11673,8 @@ snapshots:
   inherits@2.0.4: {}
 
   ini@4.1.1: {}
+
+  interpret@2.2.0: {}
 
   ioredis@5.9.3:
     dependencies:
@@ -11944,6 +12178,27 @@ snapshots:
 
   klona@2.0.6: {}
 
+  knex@3.1.0(pg@8.19.0):
+    dependencies:
+      colorette: 2.0.19
+      commander: 10.0.1
+      debug: 4.3.4
+      escalade: 3.2.0
+      esm: 3.2.25
+      get-package-type: 0.1.0
+      getopts: 2.3.0
+      interpret: 2.2.0
+      lodash: 4.17.23
+      pg-connection-string: 2.6.2
+      rechoir: 0.8.0
+      resolve-from: 5.0.0
+      tarn: 3.0.2
+      tildify: 2.0.0
+    optionalDependencies:
+      pg: 8.19.0
+    transitivePeerDependencies:
+      - supports-color
+
   knitwork@1.3.0: {}
 
   launch-editor@2.13.1:
@@ -11965,6 +12220,8 @@ snapshots:
   lib0@0.2.117:
     dependencies:
       isomorphic.js: 0.2.5
+
+  libphonenumber-js@1.12.38: {}
 
   lightningcss-android-arm64@1.31.1:
     optional: true
@@ -12251,6 +12508,8 @@ snapshots:
       - react-dom
 
   mrmime@2.0.1: {}
+
+  ms@2.1.2: {}
 
   ms@2.1.3: {}
 
@@ -12789,6 +13048,43 @@ snapshots:
 
   perfect-debounce@2.1.0: {}
 
+  pg-cloudflare@1.3.0:
+    optional: true
+
+  pg-connection-string@2.11.0: {}
+
+  pg-connection-string@2.6.2: {}
+
+  pg-int8@1.0.1: {}
+
+  pg-pool@3.12.0(pg@8.19.0):
+    dependencies:
+      pg: 8.19.0
+
+  pg-protocol@1.12.0: {}
+
+  pg-types@2.2.0:
+    dependencies:
+      pg-int8: 1.0.1
+      postgres-array: 2.0.0
+      postgres-bytea: 1.0.1
+      postgres-date: 1.0.7
+      postgres-interval: 1.2.0
+
+  pg@8.19.0:
+    dependencies:
+      pg-connection-string: 2.11.0
+      pg-pool: 3.12.0(pg@8.19.0)
+      pg-protocol: 1.12.0
+      pg-types: 2.2.0
+      pgpass: 1.0.5
+    optionalDependencies:
+      pg-cloudflare: 1.3.0
+
+  pgpass@1.0.5:
+    dependencies:
+      split2: 4.2.0
+
   picocolors@1.1.1: {}
 
   picomatch@2.3.1: {}
@@ -12978,6 +13274,16 @@ snapshots:
       nanoid: 3.3.11
       picocolors: 1.1.1
       source-map-js: 1.2.1
+
+  postgres-array@2.0.0: {}
+
+  postgres-bytea@1.0.1: {}
+
+  postgres-date@1.0.7: {}
+
+  postgres-interval@1.2.0:
+    dependencies:
+      xtend: 4.0.2
 
   prelude-ls@1.2.1: {}
 
@@ -13179,6 +13485,10 @@ snapshots:
   readdirp@4.1.2: {}
 
   readdirp@5.0.0: {}
+
+  rechoir@0.8.0:
+    dependencies:
+      resolve: 1.22.11
 
   redis-errors@1.2.0: {}
 
@@ -13479,6 +13789,8 @@ snapshots:
 
   speakingurl@14.0.1: {}
 
+  split2@4.2.0: {}
+
   sprintf-js@1.0.3: {}
 
   srvx@0.11.8: {}
@@ -13654,6 +13966,8 @@ snapshots:
       minizlib: 3.1.0
       yallist: 5.0.0
 
+  tarn@3.0.2: {}
+
   terser-webpack-plugin@5.3.16(webpack@5.104.1):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
@@ -13681,6 +13995,8 @@ snapshots:
       b4a: 1.8.0
     transitivePeerDependencies:
       - react-native-b4a
+
+  tildify@2.0.0: {}
 
   tiny-inflate@1.0.3: {}
 
@@ -14047,6 +14363,8 @@ snapshots:
       '@jridgewell/trace-mapping': 0.3.31
       '@types/istanbul-lib-coverage': 2.0.6
       convert-source-map: 2.0.0
+
+  validator@13.15.26: {}
 
   vary@1.1.2: {}
 
