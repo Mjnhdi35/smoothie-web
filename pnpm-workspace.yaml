@@ -1,9 +1,10 @@
 packages:
-  - apps/*
-  - libs/*
+  - 'apps/*'
+  - 'libs/*'
 
 onlyBuiltDependencies:
   - '@nestjs/core'
   - '@parcel/watcher'
   - esbuild
   - unrs-resolver
+  - vue-demi

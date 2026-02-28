@@ -3,7 +3,13 @@
   "version": "1.0.0",
   "description": "Smoothie Monorepo",
   "private": true,
-  "scripts": {},
+  "scripts": {
+    "format": "prettier --write \"apps/**/*.{ts,vue}\"",
+    "lint": "pnpm -r lint",
+    "build": "pnpm -r build",
+    "tsc": "pnpm -r tsc",
+    "valid": "pnpm format && pnpm lint && pnpm tsc && pnpm build"
+  },
   "keywords": [
     "NodeJS",
     "Typescript",
@@ -14,6 +20,7 @@
   "license": "MIT",
   "packageManager": "pnpm@10.30.3",
   "devDependencies": {
-    "prettier": "^3.8.1"
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3"
   }
 }
