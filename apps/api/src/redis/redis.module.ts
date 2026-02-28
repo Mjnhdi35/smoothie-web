@@ -2,6 +2,7 @@ import {
   Global,
   Inject,
   Injectable,
+  Logger,
   Module,
   OnApplicationShutdown,
 } from '@nestjs/common';
@@ -15,6 +16,7 @@ export type RedisClient = Redis | null;
 @Injectable()
 class RedisLifecycle implements OnApplicationShutdown {
   private disposed = false;
+  private readonly logger = new Logger(RedisLifecycle.name);
 
   constructor(@Inject(REDIS) private readonly redisClient: RedisClient) {}
 
@@ -28,6 +30,7 @@ class RedisLifecycle implements OnApplicationShutdown {
     try {
       await this.redisClient.quit();
     } catch {
+      this.logger.warn('Redis quit failed, force disconnecting client');
       this.redisClient.disconnect();
     }
   }
@@ -49,7 +52,7 @@ class RedisLifecycle implements OnApplicationShutdown {
 
         const isTls = redisUrl.startsWith('rediss://');
 
-        return new Redis(redisUrl, {
+        const redisClient = new Redis(redisUrl, {
           lazyConnect: true,
           maxRetriesPerRequest: 1,
           enableAutoPipelining: false,
@@ -57,6 +60,21 @@ class RedisLifecycle implements OnApplicationShutdown {
           connectTimeout: 5000,
           tls: isTls ? {} : undefined,
         });
+
+        redisClient.on('error', (error) => {
+          const message =
+            error instanceof Error ? error.message : 'Unknown Redis error';
+          process.stderr.write(
+            `${JSON.stringify({
+              level: 'warn',
+              message: 'redis_client_error',
+              error: message,
+              timestamp: new Date().toISOString(),
+            })}\n`,
+          );
+        });
+
+        return redisClient;
       },
     },
     RedisLifecycle,

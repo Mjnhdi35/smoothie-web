@@ -1,19 +1,33 @@
 import type { Knex } from 'knex';
 import * as dotenv from 'dotenv';
+import { normalizeDatabaseUrl } from './src/config/database-url';
 
 dotenv.config();
 
 type KnexSettings = Knex.Config<Record<string, unknown>>;
-const databaseUrl = process.env.DATABASE_URL;
+const rawDatabaseUrl = process.env.DATABASE_URL;
 
-if (databaseUrl === undefined || databaseUrl.trim() === '') {
+if (rawDatabaseUrl === undefined || rawDatabaseUrl.trim() === '') {
   throw new Error('DATABASE_URL is required for Knex migrations.');
 }
 
+const databaseUrl = normalizeDatabaseUrl(rawDatabaseUrl);
+
 const baseConfig = {
   client: 'pg',
-  connection: databaseUrl,
-  pool: { min: 0, max: 3 },
+  connection: {
+    connectionString: databaseUrl,
+    ssl: {
+      rejectUnauthorized: true,
+    },
+    statement_timeout: 5000,
+    query_timeout: 5000,
+  },
+  pool: {
+    min: 0,
+    max: 5,
+    idleTimeoutMillis: 30000,
+  },
   migrations: {
     directory: './src/database/migrations',
     extension: 'ts',
@@ -25,7 +39,9 @@ const config = {
   development: baseConfig,
   test: {
     ...baseConfig,
-    connection: process.env.DATABASE_URL_TEST ?? process.env.DATABASE_URL,
+    connection: normalizeDatabaseUrl(
+      process.env.DATABASE_URL_TEST ?? rawDatabaseUrl,
+    ),
   },
   production: baseConfig,
 } satisfies Record<'development' | 'test' | 'production', KnexSettings>;

@@ -1,122 +1,189 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Smoothie API - Modular Monolith (Production Baseline)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Architecture
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This codebase is a modular monolith with strict domain boundaries.
 
-## Description
+- No domain service imports another domain service directly.
+- Cross-domain communication is done through `EventBus` abstraction.
+- Domain modules are stateless and ready for future microservice extraction.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ pnpm install
+```
+src/
+  modules/
+    users/
+    auth/
+    ecommerce/
+    booking/
+    blog/
+    landing/
+    chat/
+    health/
+  infrastructure/
+    database/
+    redis/
+    events/
+    http/
+    logging/
+  common/
+  config/
+  main.ts
 ```
 
-## Compile and run the project
+## Runtime Stack
+
+- Node.js 22
+- NestJS 11.1.14
+- Knex + PostgreSQL 17 (Neon)
+- Redis (pub/sub + cache + idempotency)
+- TypeScript strict + CommonJS
+
+## Core Design Decisions
+
+- `EventBus` abstraction allows replacing Redis with Kafka later without touching domain services.
+- `RedisPublisher` / `RedisSubscriber` are separated for safer reconnect and cleaner responsibilities.
+- Query filters are built dynamically with reusable `FilterBuilder` + cursor pagination helpers.
+- No `SELECT *` in repositories.
+- DB pool and timeout tuned for Neon free-tier.
+
+## Environment
+
+Copy `.env.example` to `.env`.
+
+Required:
+- `DATABASE_URL`
+  - Use `sslmode=verify-full` for Neon production TLS verification.
+
+Optional:
+- `REDIS_URL`
+- `RATE_LIMIT_WINDOW_MS`
+- `RATE_LIMIT_MAX`
+- `CHAT_WS_PORT`
+- `CHAT_SOCKET_RATE_LIMIT_WINDOW_MS`
+- `CHAT_SOCKET_RATE_LIMIT_MAX`
+
+## Database Configuration (Neon Free Tier)
+
+- SSL required
+- pool: `min=0`, `max=5`
+- `idleTimeoutMillis=30000`
+- `statement_timeout=5000`
+- `query_timeout=5000`
+- bootstrap retry for cold start
+
+## Migrations
 
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+pnpm --filter @smoothie/api migrate:latest
+pnpm --filter @smoothie/api migrate:rollback
+pnpm --filter @smoothie/api migrate:make -- migration_name
 ```
 
-## Run tests
+Tables include:
+- users
+- auth_sessions
+- products, inventory, orders, order_items
+- hotels, rooms, bookings
+- blog_posts
+- landing_pages
+- chat_messages
+
+## Run
 
 ```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+pnpm --filter @smoothie/api start:dev
+pnpm --filter @smoothie/api start:prod
 ```
 
-## Database (Knex + PostgreSQL)
+## API Examples
 
-`DATABASE_URL` is required in `.env` for runtime and migrations.
-`REDIS_URL` is optional; set it when Redis Cloud is enabled.
+### Users
 
 ```bash
-# create a migration file
-$ pnpm run migrate:make -- create_users_table
-
-# run pending migrations
-$ pnpm run migrate:latest
-
-# rollback last migration batch
-$ pnpm run migrate:rollback
+curl 'http://localhost:3000/users?email=john@example.com&limit=20&cursor=<cursor>'
 ```
 
-### Module Pattern (No CQRS / No Hexagon)
-
-Use simple layered flow:
-
-1. `controller` handles HTTP.
-2. `service` contains business rules.
-3. `repository` performs Knex queries.
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Ecommerce
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+curl 'http://localhost:3000/ecommerce/products?category=electronics&priceMin=100&priceMax=1000&limit=20'
+
+curl -X POST 'http://localhost:3000/ecommerce/orders' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "userId": "8d7d9e37-31db-4389-b4de-58e55fe20e18",
+    "idempotencyKey": "order-2026-0001",
+    "items": [{"productId":"52a271f1-e0d5-46e0-bf01-0eca1457dd2f","quantity":1}]
+  }'
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Booking
 
-## Resources
+```bash
+curl 'http://localhost:3000/bookings?hotelId=<hotelId>&dateFrom=2026-03-01&dateTo=2026-03-10&limit=20'
 
-Check out a few resources that may come in handy when working with NestJS:
+curl -X POST 'http://localhost:3000/bookings' \
+  -H 'Content-Type: application/json' \
+  -d '{"userId":"<uuid>","roomId":"<uuid>","stayDate":"2026-03-01"}'
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Blog
 
-## Support
+```bash
+curl 'http://localhost:3000/blog/posts?status=published&tag=tech&limit=20'
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Landing
 
-## Stay in touch
+```bash
+curl 'http://localhost:3000/landing/pages?status=published&limit=20'
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Chat
 
-## License
+HTTP send message:
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```bash
+curl -X POST 'http://localhost:3000/chat/messages' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "roomId":"<uuid>",
+    "senderId":"<uuid>",
+    "message":"hello",
+    "ackId":"ack-1"
+  }'
+```
+
+WebSocket endpoint (raw ws): `ws://localhost:${CHAT_WS_PORT}`
+
+Payload format:
+
+```json
+{
+  "roomId": "<uuid>",
+  "senderId": "<uuid>",
+  "message": "hello",
+  "ackId": "ack-1"
+}
+```
+
+## Health
+
+```bash
+curl http://localhost:3000/health
+curl http://localhost:3000/health/readiness
+```
+
+## Quality Checks
+
+```bash
+pnpm --filter @smoothie/api lint
+pnpm --filter @smoothie/api tsc
+pnpm --filter @smoothie/api test
+```
+
+## Tradeoffs
+
+- Redis is currently the event transport for internal domain events and chat fan-out. Adapter boundary exists so Kafka can replace it later.
+- Raw `ws` server is used due dependency/network constraints in this environment; gateway logic is isolated in module so migration to Nest WebSocket gateway is straightforward.
+- Cache invalidation uses explicit key strategy; wildcard invalidation should be replaced by tag/versioned keys in high-throughput production.

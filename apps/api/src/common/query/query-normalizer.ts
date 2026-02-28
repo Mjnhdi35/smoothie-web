@@ -44,11 +44,8 @@ export function normalizeDateInput(
 export function normalizePagination(
   query: PaginationQuery,
   options: PaginationOptions,
-): { limit: number; offset: number } {
-  const limit = normalizeLimit(query.limit, options);
-  const offset = normalizeOffset(query.offset, options);
-
-  return { limit, offset };
+): number {
+  return normalizeLimit(query.limit, options);
 }
 
 function normalizeLimit(
@@ -63,15 +60,4 @@ function normalizeLimit(
     Math.max(Math.trunc(value), options.minLimit),
     options.maxLimit,
   );
-}
-
-function normalizeOffset(
-  value: number | undefined,
-  options: PaginationOptions,
-): number {
-  if (value === undefined || !Number.isFinite(value)) {
-    return options.minOffset;
-  }
-
-  return Math.max(Math.trunc(value), options.minOffset);
 }

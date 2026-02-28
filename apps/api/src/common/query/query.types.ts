@@ -6,12 +6,10 @@ export type DeletedScope = (typeof DELETED_SCOPES)[number];
 
 export interface PaginationQuery {
   limit?: number;
-  offset?: number;
 }
 
 export interface PaginationOptions {
   defaultLimit: number;
   minLimit: number;
   maxLimit: number;
-  minOffset: number;
 }

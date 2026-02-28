@@ -1,8 +1,15 @@
+import { normalizeDatabaseUrl } from './database-url';
+
 export type RuntimeEnv = {
   NODE_ENV: 'development' | 'test' | 'production';
   PORT: number;
   DATABASE_URL: string;
   REDIS_URL?: string;
+  RATE_LIMIT_WINDOW_MS: number;
+  RATE_LIMIT_MAX: number;
+  CHAT_WS_PORT: number;
+  CHAT_SOCKET_RATE_LIMIT_WINDOW_MS: number;
+  CHAT_SOCKET_RATE_LIMIT_MAX: number;
 };
 
 const NODE_ENVS: RuntimeEnv['NODE_ENV'][] = [
@@ -21,6 +28,10 @@ function getRequiredString(env: NodeJS.ProcessEnv, key: string): string {
   return value;
 }
 
+function getDatabaseUrl(env: NodeJS.ProcessEnv): string {
+  return normalizeDatabaseUrl(getRequiredString(env, 'DATABASE_URL'));
+}
+
 function getPort(env: NodeJS.ProcessEnv): number {
   const rawPort = env.PORT ?? '3000';
   const port = Number(rawPort);
@@ -30,6 +41,21 @@ function getPort(env: NodeJS.ProcessEnv): number {
   }
 
   return port;
+}
+
+function getPositiveInt(
+  env: NodeJS.ProcessEnv,
+  key: string,
+  fallback: number,
+): number {
+  const raw = env[key];
+  const value = raw === undefined ? fallback : Number(raw);
+
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`Invalid ${key} value: ${raw ?? String(fallback)}`);
+  }
+
+  return value;
 }
 
 function getNodeEnv(env: NodeJS.ProcessEnv): RuntimeEnv['NODE_ENV'] {
@@ -54,7 +80,20 @@ export function validateEnv(env: NodeJS.ProcessEnv): RuntimeEnv {
   return {
     NODE_ENV: getNodeEnv(env),
     PORT: getPort(env),
-    DATABASE_URL: getRequiredString(env, 'DATABASE_URL'),
+    DATABASE_URL: getDatabaseUrl(env),
     REDIS_URL: normalizedRedisUrl,
+    RATE_LIMIT_WINDOW_MS: getPositiveInt(env, 'RATE_LIMIT_WINDOW_MS', 60000),
+    RATE_LIMIT_MAX: getPositiveInt(env, 'RATE_LIMIT_MAX', 100),
+    CHAT_WS_PORT: getPositiveInt(env, 'CHAT_WS_PORT', 3101),
+    CHAT_SOCKET_RATE_LIMIT_WINDOW_MS: getPositiveInt(
+      env,
+      'CHAT_SOCKET_RATE_LIMIT_WINDOW_MS',
+      60000,
+    ),
+    CHAT_SOCKET_RATE_LIMIT_MAX: getPositiveInt(
+      env,
+      'CHAT_SOCKET_RATE_LIMIT_MAX',
+      20,
+    ),
   };
 }

@@ -1,6 +1,5 @@
 import type { Knex } from 'knex';
 import type { DeletedScope, SortOrder } from './query.types';
-import { escapeLikePattern } from './query-filter.engine';
 
 export function applyDeletedScope(
   queryBuilder: Knex.QueryBuilder,
@@ -22,7 +21,7 @@ export function whereInsensitiveEqual(
   column: string,
   value: string,
 ): void {
-  queryBuilder.whereRaw(`lower(${column}) = lower(?)`, [value]);
+  queryBuilder.whereILike(column, value);
 }
 
 export function whereInsensitiveContains(
@@ -30,8 +29,7 @@ export function whereInsensitiveContains(
   column: string,
   value: string,
 ): void {
-  const pattern = `%${escapeLikePattern(value)}%`;
-  queryBuilder.whereRaw(`${column} ILIKE ? ESCAPE '\\\\'`, [pattern]);
+  queryBuilder.whereILike(column, `%${value}%`);
 }
 
 export function orWhereInsensitiveContains(
@@ -39,8 +37,7 @@ export function orWhereInsensitiveContains(
   column: string,
   value: string,
 ): void {
-  const pattern = `%${escapeLikePattern(value)}%`;
-  queryBuilder.orWhereRaw(`${column} ILIKE ? ESCAPE '\\\\'`, [pattern]);
+  queryBuilder.orWhereILike(column, `%${value}%`);
 }
 
 export function applyDateRange(
