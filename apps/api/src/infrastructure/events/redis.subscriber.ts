@@ -98,6 +98,21 @@ export class RedisSubscriber implements OnApplicationShutdown {
     }
 
     const handlers = Array.from(channelHandlers);
-    await Promise.all(handlers.map((handler) => handler(message)));
+    const results = await Promise.allSettled(
+      handlers.map(async (handler) => handler(message)),
+    );
+
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        const detail = this.formatUnknown(result.reason as unknown);
+        this.logger.warn(
+          `Redis handler failure on channel ${channel}: ${detail}`,
+        );
+      }
+    }
+  }
+
+  private formatUnknown(value: unknown): string {
+    return value instanceof Error ? value.message : String(value);
   }
 }

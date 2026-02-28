@@ -22,20 +22,29 @@
     "knex": "node -r ts-node/register ../../node_modules/knex/bin/cli.js --knexfile knexfile.ts",
     "migrate:make": "pnpm knex migrate:make",
     "migrate:latest": "pnpm knex migrate:latest",
-    "migrate:rollback": "pnpm knex migrate:rollback"
+    "migrate:rollback": "pnpm knex migrate:rollback",
+    "seed:make": "pnpm knex seed:make",
+    "seed:run": "ts-node src/database/seed-runner.ts",
+    "seed:run:dev": "pnpm seed:run --env=development"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.14",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.1.14",
     "@nestjs/platform-express": "^11.1.14",
+    "@nestjs/throttler": "^6.4.0",
+    "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
+    "compression": "^1.8.1",
+    "date-fns": "^4.1.0",
+    "helmet": "^8.1.0",
     "ioredis": "^5.9.3",
     "knex": "^3.1.0",
     "pg": "^8.19.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "zod": "^4.1.11"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.4",
@@ -44,6 +53,8 @@
     "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.1.14",
     "@types/express": "^5.0.6",
+    "@types/compression": "^1.8.1",
+    "@types/bcrypt": "^6.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.19.13",
     "@types/pg": "^8.16.0",

@@ -9,6 +9,8 @@ interface AuthSessionRow {
   session_id: string;
   user_id: string;
   created_at: Date;
+  expires_at: Date;
+  revoked_at: Date | null;
 }
 
 @Injectable()
@@ -18,6 +20,7 @@ export class AuthRepository {
   async createSession(input: {
     sessionId: string;
     userId: string;
+    expiresAt: Date;
     trx?: Knex.Transaction;
   }): Promise<void> {
     const executor = input.trx ?? this.knexClient;
@@ -26,6 +29,22 @@ export class AuthRepository {
       session_id: input.sessionId,
       user_id: input.userId,
       created_at: this.knexClient.fn.now(),
+      expires_at: input.expiresAt,
+      revoked_at: null,
     });
+  }
+
+  async revokeSession(
+    sessionId: string,
+    trx?: Knex.Transaction,
+  ): Promise<number> {
+    const executor = trx ?? this.knexClient;
+
+    return executor<AuthSessionRow>('auth_sessions')
+      .where({ session_id: sessionId })
+      .whereNull('revoked_at')
+      .update({
+        revoked_at: this.knexClient.fn.now(),
+      });
   }
 }

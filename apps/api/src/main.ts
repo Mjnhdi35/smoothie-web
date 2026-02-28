@@ -1,28 +1,38 @@
 import 'reflect-metadata';
 
-import { ValidationPipe } from '@nestjs/common';
+import type { LogLevel } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './infrastructure/http/filters/global-exception.filter';
 import { ResponseInterceptor } from './infrastructure/http/interceptors/response.interceptor';
-import { compressionMiddleware } from './infrastructure/http/middleware/compression.middleware';
 import { createRateLimitMiddleware } from './infrastructure/http/middleware/rate-limit.middleware';
-import { requestLoggerMiddleware } from './infrastructure/http/middleware/request-logger.middleware';
-import { securityHeadersMiddleware } from './infrastructure/http/middleware/security-headers.middleware';
-import { AppLogger } from './infrastructure/logging/app-logger.service';
+import { applyStandardMiddleware } from './infrastructure/http/middleware/standard.middleware';
 
 async function bootstrap() {
-  const bootstrapLogger = new AppLogger(process.env.NODE_ENV === 'production');
+  const isProduction = process.env.NODE_ENV === 'production';
+  const loggerLevels: LogLevel[] = isProduction
+    ? ['error', 'warn', 'log']
+    : ['error', 'warn', 'log', 'debug', 'verbose'];
+  const bootstrapLogger = new Logger('Bootstrap');
+
+  process.on('unhandledRejection', (reason) => {
+    bootstrapLogger.error(
+      `Unhandled rejection: ${reason instanceof Error ? reason.message : String(reason)}`,
+    );
+  });
+  process.on('uncaughtException', (error) => {
+    bootstrapLogger.error(`Uncaught exception: ${error.message}`, error.stack);
+    process.exit(1);
+  });
+
   const app = await NestFactory.create(AppModule, {
-    logger: bootstrapLogger,
+    logger: loggerLevels,
   });
 
   app.enableShutdownHooks();
-  app.useLogger(bootstrapLogger);
-  app.use(requestLoggerMiddleware);
-  app.use(securityHeadersMiddleware);
-  app.use(compressionMiddleware);
+  applyStandardMiddleware(app, bootstrapLogger);
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

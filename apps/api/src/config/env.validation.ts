@@ -10,6 +10,10 @@ export type RuntimeEnv = {
   CHAT_WS_PORT: number;
   CHAT_SOCKET_RATE_LIMIT_WINDOW_MS: number;
   CHAT_SOCKET_RATE_LIMIT_MAX: number;
+  CHAT_SOCKET_MAX_BUFFER_BYTES: number;
+  CHAT_MAX_CONNECTIONS: number;
+  CHAT_MAX_INFLIGHT_MESSAGES_PER_SOCKET: number;
+  AUTH_SESSION_TTL_SECONDS: number;
 };
 
 const NODE_ENVS: RuntimeEnv['NODE_ENV'][] = [
@@ -94,6 +98,22 @@ export function validateEnv(env: NodeJS.ProcessEnv): RuntimeEnv {
       env,
       'CHAT_SOCKET_RATE_LIMIT_MAX',
       20,
+    ),
+    CHAT_SOCKET_MAX_BUFFER_BYTES: getPositiveInt(
+      env,
+      'CHAT_SOCKET_MAX_BUFFER_BYTES',
+      1_048_576,
+    ),
+    CHAT_MAX_CONNECTIONS: getPositiveInt(env, 'CHAT_MAX_CONNECTIONS', 2000),
+    CHAT_MAX_INFLIGHT_MESSAGES_PER_SOCKET: getPositiveInt(
+      env,
+      'CHAT_MAX_INFLIGHT_MESSAGES_PER_SOCKET',
+      8,
+    ),
+    AUTH_SESSION_TTL_SECONDS: getPositiveInt(
+      env,
+      'AUTH_SESSION_TTL_SECONDS',
+      86_400,
     ),
   };
 }

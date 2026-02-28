@@ -61,6 +61,9 @@ Optional:
 - `CHAT_WS_PORT`
 - `CHAT_SOCKET_RATE_LIMIT_WINDOW_MS`
 - `CHAT_SOCKET_RATE_LIMIT_MAX`
+- `CHAT_SOCKET_MAX_BUFFER_BYTES`
+- `CHAT_MAX_CONNECTIONS`
+- `CHAT_MAX_INFLIGHT_MESSAGES_PER_SOCKET`
 
 ## Database Configuration (Neon Free Tier)
 
@@ -87,6 +90,42 @@ Tables include:
 - blog_posts
 - landing_pages
 - chat_messages
+
+3NF incremental migration set (split by domain) starts at:
+- `20260301090000_create_roles_table.ts`
+- `20260301090100_extend_users_for_rbac_and_auth.ts`
+- `20260301090200_normalize_products_categories.ts`
+- `20260301090300_harden_orders_and_order_items.ts`
+- `20260301090400_create_addresses_and_extend_hotels_rooms.ts`
+- `20260301090500_extend_bookings_for_date_range.ts`
+- `20260301090600_create_blog_tags_tables.ts`
+- `20260301090700_create_landing_sections_table.ts`
+- `20260301090800_create_chat_rooms_and_participants.ts`
+- `20260301090900_create_admin_logs_tables.ts`
+
+## Seeds
+
+Domain-split seed files:
+- `src/database/seeds/001_roles.ts`
+- `src/database/seeds/002_users.ts`
+- `src/database/seeds/003_ecommerce.ts`
+- `src/database/seeds/004_booking.ts`
+- `src/database/seeds/005_blog.ts`
+- `src/database/seeds/006_landing.ts`
+- `src/database/seeds/007_chat.ts`
+
+Run seed (non-production only):
+
+```bash
+pnpm --filter @smoothie/api seed:run -- --env=development
+```
+
+Seed runner blocks production by policy.
+
+Default demo credentials:
+- `admin@smoothie.local` / `Admin#2026!`
+- `staff.ops@smoothie.local` / `Staff#2026!`
+- `customer01@smoothie.local` / `User#2026!`
 
 ## Run
 
@@ -186,4 +225,4 @@ pnpm --filter @smoothie/api test
 
 - Redis is currently the event transport for internal domain events and chat fan-out. Adapter boundary exists so Kafka can replace it later.
 - Raw `ws` server is used due dependency/network constraints in this environment; gateway logic is isolated in module so migration to Nest WebSocket gateway is straightforward.
-- Cache invalidation uses explicit key strategy; wildcard invalidation should be replaced by tag/versioned keys in high-throughput production.
+- Compression middleware is intentionally disabled to avoid sync CPU spikes on low-resource free tiers.

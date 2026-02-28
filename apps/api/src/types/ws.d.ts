@@ -5,6 +5,7 @@ declare module 'ws' {
     static readonly OPEN: number;
     readonly OPEN: number;
     readyState: number;
+    bufferedAmount: number;
     send(data: string | Buffer): void;
     close(): void;
     on(event: 'message', listener: (data: Buffer) => void): this;

@@ -1,4 +1,5 @@
 import {
+  Logger,
   Injectable,
   OnApplicationShutdown,
   OnModuleInit,
@@ -20,9 +21,11 @@ interface ClientState {
 
 @Injectable()
 export class ChatGateway implements OnModuleInit, OnApplicationShutdown {
+  private readonly logger = new Logger(ChatGateway.name);
   private server: WebSocketServer | null = null;
   private readonly clients = new Set<WebSocket>();
   private readonly rateLimits = new Map<WebSocket, ClientState>();
+  private readonly inFlightBySocket = new Map<WebSocket, number>();
 
   constructor(
     private readonly configService: ConfigService,
@@ -35,16 +38,30 @@ export class ChatGateway implements OnModuleInit, OnApplicationShutdown {
     this.server = new WebSocketServer({ port });
 
     this.server.on('connection', (socket) => {
+      const maxConnections =
+        this.configService.get<number>('CHAT_MAX_CONNECTIONS') ?? 2000;
+      if (this.clients.size >= maxConnections) {
+        this.safeSend(socket, {
+          type: 'error',
+          message: 'server_busy',
+        });
+        socket.close();
+        return;
+      }
+
       this.clients.add(socket);
       this.rateLimits.set(socket, { count: 0, windowStartedAt: Date.now() });
+      this.inFlightBySocket.set(socket, 0);
 
       socket.on('message', (message) => {
-        void this.handleIncoming(socket, message.toString());
+        const raw = message.toString();
+        void this.handleIncoming(socket, raw);
       });
 
       socket.on('close', () => {
         this.clients.delete(socket);
         this.rateLimits.delete(socket);
+        this.inFlightBySocket.delete(socket);
       });
     });
 
@@ -62,10 +79,38 @@ export class ChatGateway implements OnModuleInit, OnApplicationShutdown {
   }
 
   private async handleIncoming(socket: WebSocket, raw: string): Promise<void> {
+    const maxPayloadBytes = this.configService.get<number>(
+      'CHAT_SOCKET_MAX_BUFFER_BYTES',
+    );
+    if (
+      maxPayloadBytes !== undefined &&
+      Buffer.byteLength(raw, 'utf8') > maxPayloadBytes
+    ) {
+      this.safeSend(socket, { type: 'error', message: 'payload_too_large' });
+      return;
+    }
+
+    if (!this.allowInFlight(socket)) {
+      this.safeSend(socket, {
+        type: 'error',
+        message: 'too_many_inflight_messages',
+      });
+      return;
+    }
+
+    try {
+      await this.handleIncomingInternal(socket, raw);
+    } finally {
+      this.decrementInFlight(socket);
+    }
+  }
+
+  private async handleIncomingInternal(
+    socket: WebSocket,
+    raw: string,
+  ): Promise<void> {
     if (!this.allowRequest(socket)) {
-      socket.send(
-        JSON.stringify({ type: 'error', message: 'rate_limit_exceeded' }),
-      );
+      this.safeSend(socket, { type: 'error', message: 'rate_limit_exceeded' });
       return;
     }
 
@@ -74,7 +119,7 @@ export class ChatGateway implements OnModuleInit, OnApplicationShutdown {
     try {
       parsed = JSON.parse(raw);
     } catch {
-      socket.send(JSON.stringify({ type: 'error', message: 'invalid_json' }));
+      this.safeSend(socket, { type: 'error', message: 'invalid_json' });
       return;
     }
 
@@ -82,31 +127,27 @@ export class ChatGateway implements OnModuleInit, OnApplicationShutdown {
     const errors = await validate(dto);
 
     if (errors.length > 0) {
-      socket.send(
-        JSON.stringify({ type: 'error', message: 'invalid_payload' }),
-      );
+      this.safeSend(socket, { type: 'error', message: 'invalid_payload' });
       return;
     }
 
     const created = await this.chatService.sendMessage(dto);
-    socket.send(
-      JSON.stringify({
-        type: 'ack',
-        ackId: dto.ackId,
-        messageId: created.messageId,
-      }),
-    );
+    this.safeSend(socket, {
+      type: 'ack',
+      ackId: dto.ackId,
+      messageId: created.messageId,
+    });
   }
 
   private broadcast(event: DomainEvent): Promise<void> {
-    const payload = JSON.stringify({
+    const payload = {
       type: event.type,
       payload: event.payload,
-    });
+    };
 
     for (const client of this.clients) {
       if (client.readyState === client.OPEN) {
-        client.send(payload);
+        this.safeSend(client, payload);
       }
     }
 
@@ -129,5 +170,44 @@ export class ChatGateway implements OnModuleInit, OnApplicationShutdown {
 
     current.count += 1;
     return current.count <= max;
+  }
+
+  private allowInFlight(socket: WebSocket): boolean {
+    const maxInFlight =
+      this.configService.get<number>('CHAT_MAX_INFLIGHT_MESSAGES_PER_SOCKET') ??
+      8;
+    const current = this.inFlightBySocket.get(socket) ?? 0;
+    if (current >= maxInFlight) {
+      return false;
+    }
+
+    this.inFlightBySocket.set(socket, current + 1);
+    return true;
+  }
+
+  private decrementInFlight(socket: WebSocket): void {
+    const current = this.inFlightBySocket.get(socket) ?? 0;
+    this.inFlightBySocket.set(socket, Math.max(0, current - 1));
+  }
+
+  private safeSend(socket: WebSocket, payload: object): void {
+    const maxBufferedBytes = this.configService.get<number>(
+      'CHAT_SOCKET_MAX_BUFFER_BYTES',
+    );
+    if (
+      maxBufferedBytes !== undefined &&
+      socket.bufferedAmount > maxBufferedBytes
+    ) {
+      this.logger.warn('Dropping chat message due to socket backpressure');
+      return;
+    }
+
+    try {
+      socket.send(JSON.stringify(payload));
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unknown socket send error';
+      this.logger.warn(`Socket send failed: ${message}`);
+    }
   }
 }

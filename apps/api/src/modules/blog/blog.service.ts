@@ -1,44 +1,41 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { EVENT_BUS, type EventBus } from '../../common/events/event-bus';
 import { createDomainEvent } from '../../common/events/domain-event';
+import { buildStableCacheKey } from '../../common/query/cache-key';
 import { DEFAULT_CURSOR_PAGINATION } from '../../common/query/query.constants';
 import {
   normalizeDateInput,
   normalizePagination,
 } from '../../common/query/query-normalizer';
 import { RedisCacheService } from '../../infrastructure/redis/redis-cache.service';
+import { BLOG_REPOSITORY } from './blog.constants';
 import { CreatePostDto } from './dto/create-post.dto';
 import { ListPostsQueryDto } from './dto/list-posts-query.dto';
-import { BlogRepository } from './blog.repository';
+import type { BlogRepositoryPort } from './blog.repository.port';
 import type { BlogPostListPage, BlogPostListQuery } from './blog.types';
 
 @Injectable()
 export class BlogService {
   constructor(
-    private readonly blogRepository: BlogRepository,
+    @Inject(BLOG_REPOSITORY)
+    private readonly blogRepository: BlogRepositoryPort,
     private readonly cacheService: RedisCacheService,
     @Inject(EVENT_BUS) private readonly eventBus: EventBus,
   ) {}
 
   async list(query: ListPostsQueryDto): Promise<BlogPostListPage> {
     const normalized = this.normalizeQuery(query);
-    const cacheKey = `blog:list:${JSON.stringify(normalized)}`;
+    const cacheKey = buildStableCacheKey('blog:list', normalized);
 
-    const cached = await this.cacheService.getJson<BlogPostListPage>(cacheKey);
-    if (cached !== null) {
-      return cached;
-    }
-
-    const page = await this.blogRepository.list(normalized);
-    await this.cacheService.setJson(cacheKey, page, 90);
-
-    return page;
+    return this.cacheService.getOrSetJson<BlogPostListPage>(cacheKey, 90, () =>
+      this.blogRepository.list(normalized),
+    );
   }
 
   async create(dto: CreatePostDto): Promise<{ postId: string }> {
     const created = await this.blogRepository.create(dto);
 
-    await this.cacheService.del('blog:list:*');
+    await this.cacheService.deleteByPrefix('blog:list:');
 
     if (dto.status === 'published') {
       await this.eventBus.publish(

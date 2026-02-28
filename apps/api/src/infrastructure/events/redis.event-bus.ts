@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import {
   type DomainEventHandler,
   type EventBus,
@@ -12,6 +13,7 @@ const EVENT_CHANNEL = 'internal:domain-events';
 @Injectable()
 export class RedisEventBus implements EventBus {
   private readonly handlers = new Map<string, Set<DomainEventHandler>>();
+  private readonly logger = new Logger(RedisEventBus.name);
   private subscribed = false;
 
   constructor(
@@ -62,7 +64,15 @@ export class RedisEventBus implements EventBus {
     }
 
     await this.subscriber.subscribe(EVENT_CHANNEL, async (message) => {
-      const event = JSON.parse(message) as DomainEvent;
+      let event: DomainEvent;
+
+      try {
+        event = JSON.parse(message) as DomainEvent;
+      } catch {
+        this.logger.warn('Skip malformed domain event payload');
+        return;
+      }
+
       const handlers = this.handlers.get(event.type);
 
       if (handlers === undefined || handlers.size === 0) {
@@ -70,9 +80,24 @@ export class RedisEventBus implements EventBus {
       }
 
       const clonedHandlers = Array.from(handlers);
-      await Promise.all(clonedHandlers.map((handler) => handler(event)));
+      const results = await Promise.allSettled(
+        clonedHandlers.map(async (handler) => handler(event)),
+      );
+
+      for (const result of results) {
+        if (result.status === 'rejected') {
+          const detail = this.formatUnknown(result.reason as unknown);
+          this.logger.warn(
+            `Domain event handler failed for ${event.type}: ${detail}`,
+          );
+        }
+      }
     });
 
     this.subscribed = true;
+  }
+
+  private formatUnknown(value: unknown): string {
+    return value instanceof Error ? value.message : String(value);
   }
 }

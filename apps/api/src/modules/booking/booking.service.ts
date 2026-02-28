@@ -6,15 +6,17 @@ import {
   normalizeDateInput,
   normalizePagination,
 } from '../../common/query/query-normalizer';
+import { BOOKING_REPOSITORY } from './booking.constants';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { ListBookingsQueryDto } from './dto/list-bookings-query.dto';
-import { BookingRepository } from './booking.repository';
+import type { BookingRepositoryPort } from './booking.repository.port';
 import type { BookingListPage, BookingListQuery } from './booking.types';
 
 @Injectable()
 export class BookingService {
   constructor(
-    private readonly bookingRepository: BookingRepository,
+    @Inject(BOOKING_REPOSITORY)
+    private readonly bookingRepository: BookingRepositoryPort,
     @Inject(EVENT_BUS) private readonly eventBus: EventBus,
   ) {}
 

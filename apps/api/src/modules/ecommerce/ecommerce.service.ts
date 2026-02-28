@@ -1,19 +1,22 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { EVENT_BUS, type EventBus } from '../../common/events/event-bus';
 import { createDomainEvent } from '../../common/events/domain-event';
+import { buildStableCacheKey } from '../../common/query/cache-key';
 import { DEFAULT_CURSOR_PAGINATION } from '../../common/query/query.constants';
 import { normalizePagination } from '../../common/query/query-normalizer';
 import { IdempotencyService } from '../../infrastructure/redis/idempotency.service';
 import { RedisCacheService } from '../../infrastructure/redis/redis-cache.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ListProductsQueryDto } from './dto/list-products-query.dto';
-import { EcommerceRepository } from './ecommerce.repository';
+import { ECOMMERCE_REPOSITORY } from './ecommerce.constants';
+import type { EcommerceRepositoryPort } from './ecommerce.repository.port';
 import type { ProductListPage, ProductListQuery } from './ecommerce.types';
 
 @Injectable()
 export class EcommerceService {
   constructor(
-    private readonly ecommerceRepository: EcommerceRepository,
+    @Inject(ECOMMERCE_REPOSITORY)
+    private readonly ecommerceRepository: EcommerceRepositoryPort,
     private readonly cacheService: RedisCacheService,
     private readonly idempotencyService: IdempotencyService,
     @Inject(EVENT_BUS) private readonly eventBus: EventBus,
@@ -21,16 +24,11 @@ export class EcommerceService {
 
   async listProducts(query: ListProductsQueryDto): Promise<ProductListPage> {
     const normalized = this.normalizeListQuery(query);
-    const cacheKey = `products:list:${JSON.stringify(normalized)}`;
+    const cacheKey = buildStableCacheKey('products:list', normalized);
 
-    const cached = await this.cacheService.getJson<ProductListPage>(cacheKey);
-    if (cached !== null) {
-      return cached;
-    }
-
-    const page = await this.ecommerceRepository.listProducts(normalized);
-    await this.cacheService.setJson(cacheKey, page, 60);
-    return page;
+    return this.cacheService.getOrSetJson<ProductListPage>(cacheKey, 60, () =>
+      this.ecommerceRepository.listProducts(normalized),
+    );
   }
 
   async createOrder(dto: CreateOrderDto): Promise<{ orderId: string }> {

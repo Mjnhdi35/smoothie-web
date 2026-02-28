@@ -1,13 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { EVENT_BUS, type EventBus } from '../../common/events/event-bus';
 import { createDomainEvent } from '../../common/events/domain-event';
+import { CHAT_REPOSITORY } from './chat.constants';
 import type { SendChatMessageDto } from './dto/send-chat-message.dto';
-import { ChatRepository } from './chat.repository';
+import type { ChatRepositoryPort } from './chat.repository.port';
 
 @Injectable()
 export class ChatService {
   constructor(
-    private readonly chatRepository: ChatRepository,
+    @Inject(CHAT_REPOSITORY)
+    private readonly chatRepository: ChatRepositoryPort,
     @Inject(EVENT_BUS) private readonly eventBus: EventBus,
   ) {}
 

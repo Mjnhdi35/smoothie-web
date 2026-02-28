@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { buildStableCacheKey } from '../../common/query/cache-key';
 import { DEFAULT_CURSOR_PAGINATION } from '../../common/query/query.constants';
 import { normalizePagination } from '../../common/query/query-normalizer';
 import { RedisCacheService } from '../../infrastructure/redis/redis-cache.service';
 import { CreateLandingPageDto } from './dto/create-landing-page.dto';
 import { ListLandingPagesQueryDto } from './dto/list-landing-pages-query.dto';
-import { LandingRepository } from './landing.repository';
+import { LANDING_REPOSITORY } from './landing.constants';
+import type { LandingRepositoryPort } from './landing.repository.port';
 import type {
   LandingPageListPage,
   LandingPageListQuery,
@@ -13,23 +15,20 @@ import type {
 @Injectable()
 export class LandingService {
   constructor(
-    private readonly landingRepository: LandingRepository,
+    @Inject(LANDING_REPOSITORY)
+    private readonly landingRepository: LandingRepositoryPort,
     private readonly cacheService: RedisCacheService,
   ) {}
 
   async list(query: ListLandingPagesQueryDto): Promise<LandingPageListPage> {
     const normalized = this.normalizeQuery(query);
-    const cacheKey = `landing:list:${JSON.stringify(normalized)}`;
+    const cacheKey = buildStableCacheKey('landing:list', normalized);
 
-    const cached =
-      await this.cacheService.getJson<LandingPageListPage>(cacheKey);
-    if (cached !== null) {
-      return cached;
-    }
-
-    const page = await this.landingRepository.list(normalized);
-    await this.cacheService.setJson(cacheKey, page, 120);
-    return page;
+    return this.cacheService.getOrSetJson<LandingPageListPage>(
+      cacheKey,
+      120,
+      () => this.landingRepository.list(normalized),
+    );
   }
 
   async create(dto: CreateLandingPageDto): Promise<{ pageId: string }> {

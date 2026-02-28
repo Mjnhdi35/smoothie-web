@@ -6,6 +6,7 @@ import {
   OnApplicationShutdown,
   Logger,
 } from '@nestjs/common';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { knex } from 'knex';
 import { normalizeDatabaseUrl } from '../config/database-url';
@@ -45,7 +46,7 @@ async function pingWithRetry(
         throw error;
       }
 
-      await new Promise((resolve) => setTimeout(resolve, delayMs * attempt));
+      await sleep(delayMs * attempt);
     }
   }
 }

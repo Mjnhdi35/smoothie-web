@@ -33,6 +33,10 @@ const baseConfig = {
     extension: 'ts',
     tableName: 'knex_migrations',
   },
+  seeds: {
+    directory: './src/database/seeds',
+    extension: 'ts',
+  },
 } satisfies KnexSettings;
 
 const config = {

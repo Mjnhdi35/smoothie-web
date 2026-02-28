@@ -6,6 +6,9 @@ interface RateLimitState {
 }
 
 const ipState = new Map<string, RateLimitState>();
+const MAX_TRACKED_IPS = 20_000;
+const SWEEP_INTERVAL_MS = 60_000;
+let lastSweepAt = 0;
 
 export function createRateLimitMiddleware(
   maxRequests: number,
@@ -17,6 +20,22 @@ export function createRateLimitMiddleware(
     next: NextFunction,
   ): void {
     const now = Date.now();
+    if (now - lastSweepAt > SWEEP_INTERVAL_MS) {
+      lastSweepAt = now;
+      for (const [ip, state] of ipState) {
+        if (now - state.windowStartedAt > windowMs) {
+          ipState.delete(ip);
+        }
+      }
+    }
+
+    if (ipState.size > MAX_TRACKED_IPS) {
+      const oldest = ipState.keys().next().value;
+      if (oldest !== undefined) {
+        ipState.delete(oldest);
+      }
+    }
+
     const key = req.ip ?? 'unknown';
     const current = ipState.get(key);
 
