@@ -1,4 +1,4 @@
-import type { Knex } from 'knex';
+import type { DbKnex } from '../database/database.constants';
 import { UsersRepository } from './users.repository';
 import type { UserRow } from './users.repository';
 
@@ -8,6 +8,10 @@ type MockQueryBuilder = {
   select: jest.Mock;
   where: jest.Mock;
   whereRaw: jest.Mock;
+  whereNull: jest.Mock;
+  whereNotNull: jest.Mock;
+  andWhere: jest.Mock;
+  orWhereRaw: jest.Mock;
   first: jest.Mock;
   orderBy: jest.Mock;
   limit: jest.Mock;
@@ -24,6 +28,13 @@ const createQueryBuilder = (): MockQueryBuilder => {
   queryBuilder.select = jest.fn().mockReturnValue(queryBuilder);
   queryBuilder.where = jest.fn().mockReturnValue(queryBuilder);
   queryBuilder.whereRaw = jest.fn().mockReturnValue(queryBuilder);
+  queryBuilder.whereNull = jest.fn().mockReturnValue(queryBuilder);
+  queryBuilder.whereNotNull = jest.fn().mockReturnValue(queryBuilder);
+  queryBuilder.andWhere = jest.fn().mockImplementation((callback) => {
+    callback(queryBuilder);
+    return queryBuilder;
+  });
+  queryBuilder.orWhereRaw = jest.fn().mockReturnValue(queryBuilder);
   queryBuilder.first = jest.fn();
   queryBuilder.orderBy = jest.fn().mockReturnValue(queryBuilder);
   queryBuilder.limit = jest.fn().mockReturnValue(queryBuilder);
@@ -38,23 +49,21 @@ describe('UsersRepository', () => {
   let usersRepository: UsersRepository;
   let queryBuilder: MockQueryBuilder;
   let knexMock: jest.Mock;
-  let nowMock: jest.Mock;
 
   beforeEach(() => {
     queryBuilder = createQueryBuilder();
-    nowMock = jest.fn(() => 'NOW');
 
     const knexClient = Object.assign(
       jest.fn(() => queryBuilder),
       {
         fn: {
-          now: nowMock,
+          now: jest.fn(() => 'NOW'),
         },
       },
     );
 
     knexMock = knexClient;
-    usersRepository = new UsersRepository(knexClient as unknown as Knex);
+    usersRepository = new UsersRepository(knexClient as unknown as DbKnex);
   });
 
   it('create should build insert query and return created user', async () => {
@@ -64,6 +73,7 @@ describe('UsersRepository', () => {
       name: 'John',
       created_at: new Date('2026-01-01T00:00:00.000Z'),
       updated_at: new Date('2026-01-01T00:00:00.000Z'),
+      deleted_at: null,
     };
 
     queryBuilder.returning.mockResolvedValue([createdUser]);
@@ -83,7 +93,7 @@ describe('UsersRepository', () => {
     });
   });
 
-  it('findByEmail should return undefined when no record exists', async () => {
+  it('findByEmail should apply active scope by default', async () => {
     queryBuilder.first.mockResolvedValue(undefined);
 
     const result = await usersRepository.findByEmail('missing@example.com');
@@ -93,25 +103,43 @@ describe('UsersRepository', () => {
       'lower(email) = lower(?)',
       ['missing@example.com'],
     );
+    expect(queryBuilder.whereNull).toHaveBeenCalledWith('deleted_at');
   });
 
-  it('updateById should ignore undefined fields and skip update query', async () => {
-    const existingUser: UserRow = {
-      id: '7d7e7f70-aaaa-4bbb-8ccc-1234567890ab',
-      email: 'old@example.com',
-      name: 'Old Name',
-      created_at: new Date('2026-01-01T00:00:00.000Z'),
-      updated_at: new Date('2026-01-01T00:00:00.000Z'),
-    };
+  it('findAll should apply filter rules', async () => {
+    queryBuilder.offset.mockResolvedValue([]);
 
-    queryBuilder.first.mockResolvedValue(existingUser);
+    await usersRepository.findAll({
+      limit: 20,
+      offset: 0,
+      sortBy: 'created_at',
+      sortOrder: 'desc',
+      deleted: 'exclude',
+      search: 'john',
+      email: 'john@example.com',
+      name: 'john',
+    });
 
-    const result = await usersRepository.updateById(
+    expect(queryBuilder.whereNull).toHaveBeenCalledWith('deleted_at');
+    expect(queryBuilder.whereRaw).toHaveBeenCalledWith(
+      'lower(email) = lower(?)',
+      ['john@example.com'],
+    );
+    expect(queryBuilder.orderBy).toHaveBeenCalledWith('created_at', 'desc');
+  });
+
+  it('softDeleteById should update deleted_at and not hard delete', async () => {
+    queryBuilder.update.mockResolvedValue(1);
+
+    const deletedCount = await usersRepository.softDeleteById(
       '7d7e7f70-aaaa-4bbb-8ccc-1234567890ab',
-      { name: undefined },
     );
 
-    expect(result).toEqual(existingUser);
-    expect(queryBuilder.update).not.toHaveBeenCalled();
+    expect(deletedCount).toBe(1);
+    expect(queryBuilder.where).toHaveBeenCalledWith({
+      id: '7d7e7f70-aaaa-4bbb-8ccc-1234567890ab',
+    });
+    expect(queryBuilder.whereNull).toHaveBeenCalledWith('deleted_at');
+    expect(queryBuilder.del).not.toHaveBeenCalled();
   });
 });

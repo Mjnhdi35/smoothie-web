@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { Knex } from 'knex';
-import { KNEX } from '../database/database.module';
+import { KnexService } from '../database/knex.service';
 import { REDIS } from '../redis/redis.module';
 import type { RedisClient } from '../redis/redis.module';
 
@@ -24,7 +23,7 @@ export interface HealthStatus {
 @Injectable()
 export class HealthService {
   constructor(
-    @Inject(KNEX) private readonly knexClient: Knex,
+    private readonly knexService: KnexService,
     @Inject(REDIS) private readonly redisClient: RedisClient,
   ) {}
 
@@ -54,7 +53,7 @@ export class HealthService {
     const start = Date.now();
 
     try {
-      await this.knexClient.raw('SELECT 1');
+      await this.knexService.raw('SELECT 1');
 
       return {
         status: 'up',

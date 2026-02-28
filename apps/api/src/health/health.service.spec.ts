@@ -1,14 +1,14 @@
-import type { Knex } from 'knex';
 import { HealthService } from './health.service';
+import type { KnexService } from '../database/knex.service';
 import type { RedisClient } from '../redis/redis.module';
 
 describe('HealthService', () => {
   it('should return ok when postgres is up and redis is disabled', async () => {
-    const knexMock = {
+    const knexServiceMock = {
       raw: jest.fn().mockResolvedValue({}),
-    } as unknown as Knex;
+    } as unknown as KnexService;
 
-    const healthService = new HealthService(knexMock, null);
+    const healthService = new HealthService(knexServiceMock, null);
 
     const result = await healthService.check();
 
@@ -18,11 +18,11 @@ describe('HealthService', () => {
   });
 
   it('should return degraded when postgres is down', async () => {
-    const knexMock = {
+    const knexServiceMock = {
       raw: jest.fn().mockRejectedValue(new Error('postgres down')),
-    } as unknown as Knex;
+    } as unknown as KnexService;
 
-    const healthService = new HealthService(knexMock, null);
+    const healthService = new HealthService(knexServiceMock, null);
 
     const result = await healthService.check();
 
@@ -31,15 +31,15 @@ describe('HealthService', () => {
   });
 
   it('should return degraded when redis ping fails', async () => {
-    const knexMock = {
+    const knexServiceMock = {
       raw: jest.fn().mockResolvedValue({}),
-    } as unknown as Knex;
+    } as unknown as KnexService;
 
     const redisMock = {
       ping: jest.fn().mockRejectedValue(new Error('redis down')),
     } as unknown as RedisClient;
 
-    const healthService = new HealthService(knexMock, redisMock);
+    const healthService = new HealthService(knexServiceMock, redisMock);
 
     const result = await healthService.check();
 

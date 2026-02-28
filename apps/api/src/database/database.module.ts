@@ -7,10 +7,9 @@ import {
 } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { knex } from 'knex';
-import type { Knex } from 'knex';
-
-export const KNEX = Symbol('KNEX');
-export type DbKnex = Knex<Record<string, unknown>, unknown[]>;
+import { KNEX } from './database.constants';
+import type { DbKnex } from './database.constants';
+import { KnexService } from './knex.service';
 
 @Injectable()
 class KnexLifecycle implements OnApplicationShutdown {
@@ -45,8 +44,9 @@ class KnexLifecycle implements OnApplicationShutdown {
         });
       },
     },
+    KnexService,
     KnexLifecycle,
   ],
-  exports: [KNEX],
+  exports: [KNEX, KnexService],
 })
 export class DatabaseModule {}

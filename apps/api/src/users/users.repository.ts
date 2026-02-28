@@ -1,11 +1,30 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Knex } from 'knex';
 import { BaseRepository } from '../common/repository/base.repository';
-import { KNEX } from '../database/database.module';
+import {
+  applyQueryFilterRules,
+  type QueryFilterRule,
+} from '../common/query/query-filter.engine';
+import {
+  applyDateRange,
+  applyDeletedScope,
+  applySort,
+  orWhereInsensitiveContains,
+  whereInsensitiveContains,
+  whereInsensitiveEqual,
+} from '../common/query/query-builder.helpers';
+import type { DeletedScope, SortOrder } from '../common/query/query.types';
+import type { DbKnex } from '../database/database.constants';
+import { KNEX } from '../database/database.constants';
 
 const USERS_TABLE = 'users';
 
 export type UserId = string;
+export const USERS_REPOSITORY = Symbol('USERS_REPOSITORY');
+
+export type UserSortBy = 'created_at' | 'updated_at' | 'email' | 'name';
+export type UserSortOrder = SortOrder;
+export type UserDeletedScope = DeletedScope;
 
 export interface UserRow {
   id: UserId;
@@ -13,6 +32,7 @@ export interface UserRow {
   name: string;
   created_at: Date;
   updated_at: Date;
+  deleted_at: Date | null;
 }
 
 export interface CreateUserInput {
@@ -25,14 +45,93 @@ export interface UpdateUserInput {
   name?: string;
 }
 
-export interface UserListOptions {
+export interface UserLookupOptions {
+  deleted?: UserDeletedScope;
+}
+
+export interface UserListQuery {
   limit: number;
   offset: number;
+  sortBy: UserSortBy;
+  sortOrder: UserSortOrder;
+  deleted: UserDeletedScope;
+  name?: string;
+  email?: string;
+  search?: string;
+  createdFrom?: Date;
+  createdTo?: Date;
+}
+
+const userListFilterRules: QueryFilterRule<UserListQuery>[] = [
+  {
+    isActive: () => true,
+    apply: (queryBuilder, query) => {
+      applyDeletedScope(queryBuilder, query.deleted);
+    },
+  },
+  {
+    isActive: (query) => query.email !== undefined,
+    apply: (queryBuilder, query) => {
+      whereInsensitiveEqual(queryBuilder, 'email', query.email!);
+    },
+  },
+  {
+    isActive: (query) => query.name !== undefined,
+    apply: (queryBuilder, query) => {
+      whereInsensitiveContains(queryBuilder, 'name', query.name!);
+    },
+  },
+  {
+    isActive: (query) => query.search !== undefined,
+    apply: (queryBuilder, query) => {
+      queryBuilder.andWhere((subQueryBuilder) => {
+        whereInsensitiveContains(subQueryBuilder, 'email', query.search!);
+        orWhereInsensitiveContains(subQueryBuilder, 'name', query.search!);
+      });
+    },
+  },
+  {
+    isActive: (query) =>
+      query.createdFrom !== undefined || query.createdTo !== undefined,
+    apply: (queryBuilder, query) => {
+      applyDateRange(
+        queryBuilder,
+        'created_at',
+        query.createdFrom,
+        query.createdTo,
+      );
+    },
+  },
+];
+
+export interface UsersRepositoryPort {
+  create(input: CreateUserInput, trx?: Knex.Transaction): Promise<UserRow>;
+  findById(
+    id: UserId,
+    options?: UserLookupOptions,
+    trx?: Knex.Transaction,
+  ): Promise<UserRow | undefined>;
+  findByEmail(
+    email: string,
+    options?: UserLookupOptions,
+    trx?: Knex.Transaction,
+  ): Promise<UserRow | undefined>;
+  findAll(query: UserListQuery, trx?: Knex.Transaction): Promise<UserRow[]>;
+  updateById(
+    id: UserId,
+    input: UpdateUserInput,
+    trx?: Knex.Transaction,
+  ): Promise<UserRow | undefined>;
+  softDeleteById(id: UserId, trx?: Knex.Transaction): Promise<number>;
+  restoreById(id: UserId, trx?: Knex.Transaction): Promise<UserRow | undefined>;
 }
 
 @Injectable()
-export class UsersRepository extends BaseRepository<UserRow> {
-  constructor(@Inject(KNEX) knexClient: Knex) {
+export class UsersRepository
+  extends BaseRepository<UserRow>
+  implements UsersRepositoryPort
+{
+  constructor(@Inject(KNEX) knexClient: DbKnex) {
     super(knexClient, USERS_TABLE);
   }
 
@@ -56,32 +155,39 @@ export class UsersRepository extends BaseRepository<UserRow> {
 
   async findById(
     id: UserId,
+    options?: UserLookupOptions,
     trx?: Knex.Transaction,
   ): Promise<UserRow | undefined> {
-    const user = (await this.selectBase(trx).where({ id }).first()) as
-      | UserRow
-      | undefined;
+    const queryBuilder = this.selectBase(trx).where({ id });
+    applyDeletedScope(queryBuilder, options?.deleted ?? 'exclude');
+
+    const user = (await queryBuilder.first()) as UserRow | undefined;
     return user;
   }
 
   async findByEmail(
     email: string,
+    options?: UserLookupOptions,
     trx?: Knex.Transaction,
   ): Promise<UserRow | undefined> {
-    const user = (await this.selectBase(trx)
-      .whereRaw('lower(email) = lower(?)', [email])
-      .first()) as UserRow | undefined;
+    const queryBuilder = this.selectBase(trx);
+    whereInsensitiveEqual(queryBuilder, 'email', email);
+    applyDeletedScope(queryBuilder, options?.deleted ?? 'exclude');
+
+    const user = (await queryBuilder.first()) as UserRow | undefined;
     return user;
   }
 
   async findAll(
-    options: UserListOptions,
+    query: UserListQuery,
     trx?: Knex.Transaction,
   ): Promise<UserRow[]> {
-    const users = await this.selectBase(trx)
-      .orderBy('id', 'desc')
-      .limit(options.limit)
-      .offset(options.offset);
+    const queryBuilder = this.selectBase(trx);
+
+    applyQueryFilterRules(queryBuilder, query, userListFilterRules);
+
+    applySort(queryBuilder, query.sortBy, query.sortOrder);
+    const users = await queryBuilder.limit(query.limit).offset(query.offset);
 
     return users as UserRow[];
   }
@@ -94,11 +200,12 @@ export class UsersRepository extends BaseRepository<UserRow> {
     const updates = this.removeUndefinedFields(input);
 
     if (Object.keys(updates).length === 0) {
-      return this.findById(id, trx);
+      return this.findById(id, undefined, trx);
     }
 
     const [updatedUser] = (await this.tableQuery(trx)
       .where({ id })
+      .whereNull('deleted_at')
       .update({
         ...updates,
         ...this.updateTimestamp(),
@@ -108,8 +215,31 @@ export class UsersRepository extends BaseRepository<UserRow> {
     return updatedUser;
   }
 
-  async deleteById(id: UserId, trx?: Knex.Transaction): Promise<number> {
-    const deletedCount = await this.tableQuery(trx).where({ id }).del();
+  async softDeleteById(id: UserId, trx?: Knex.Transaction): Promise<number> {
+    const deletedCount = await this.tableQuery(trx)
+      .where({ id })
+      .whereNull('deleted_at')
+      .update({
+        deleted_at: this.knex.fn.now(),
+        ...this.updateTimestamp(),
+      });
+
     return deletedCount;
+  }
+
+  async restoreById(
+    id: UserId,
+    trx?: Knex.Transaction,
+  ): Promise<UserRow | undefined> {
+    const [restoredUser] = (await this.tableQuery(trx)
+      .where({ id })
+      .whereNotNull('deleted_at')
+      .update({
+        deleted_at: null,
+        ...this.updateTimestamp(),
+      })
+      .returning('*')) as UserRow[];
+
+    return restoredUser;
   }
 }

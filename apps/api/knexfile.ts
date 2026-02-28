@@ -4,10 +4,15 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 type KnexSettings = Knex.Config<Record<string, unknown>>;
+const databaseUrl = process.env.DATABASE_URL;
+
+if (databaseUrl === undefined || databaseUrl.trim() === '') {
+  throw new Error('DATABASE_URL is required for Knex migrations.');
+}
 
 const baseConfig = {
   client: 'pg',
-  connection: process.env.DATABASE_URL,
+  connection: databaseUrl,
   pool: { min: 0, max: 3 },
   migrations: {
     directory: './src/database/migrations',

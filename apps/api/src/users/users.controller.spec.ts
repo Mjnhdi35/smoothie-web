@@ -46,7 +46,9 @@ describe('UsersController', () => {
   });
 
   it('should delegate create to service for valid payload', async () => {
-    usersServiceMock.create.mockResolvedValue({ id: 1 });
+    usersServiceMock.create.mockResolvedValue({
+      id: 'f0f1f2f3-aaaa-4bbb-8ccc-0123456789ab',
+    });
 
     await usersController.create({
       email: 'john@example.com',

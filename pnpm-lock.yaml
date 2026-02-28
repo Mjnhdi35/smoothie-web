@@ -35,6 +35,9 @@ importers:
       class-validator:
         specifier: ^0.15.1
         version: 0.15.1
+      ioredis:
+        specifier: ^5.9.3
+        version: 5.9.3
       knex:
         specifier: ^3.1.0
         version: 3.1.0(pg@8.19.0)

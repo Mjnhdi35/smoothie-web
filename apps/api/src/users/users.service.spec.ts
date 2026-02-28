@@ -1,7 +1,7 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { UsersService } from './users.service';
-import type { UsersRepository } from './users.repository';
 import type { UserRow } from './users.repository';
+import type { UsersRepositoryPort } from './users.repository';
 
 type UsersRepositoryMock = {
   create: jest.Mock;
@@ -9,7 +9,8 @@ type UsersRepositoryMock = {
   findByEmail: jest.Mock;
   findAll: jest.Mock;
   updateById: jest.Mock;
-  deleteById: jest.Mock;
+  softDeleteById: jest.Mock;
+  restoreById: jest.Mock;
 };
 
 describe('UsersService', () => {
@@ -23,11 +24,12 @@ describe('UsersService', () => {
       findByEmail: jest.fn(),
       findAll: jest.fn(),
       updateById: jest.fn(),
-      deleteById: jest.fn(),
+      softDeleteById: jest.fn(),
+      restoreById: jest.fn(),
     };
 
     usersService = new UsersService(
-      usersRepository as unknown as UsersRepository,
+      usersRepository as unknown as UsersRepositoryPort,
     );
   });
 
@@ -38,6 +40,7 @@ describe('UsersService', () => {
       name: 'John',
       created_at: new Date('2026-01-01T00:00:00.000Z'),
       updated_at: new Date('2026-01-01T00:00:00.000Z'),
+      deleted_at: null,
     };
 
     usersRepository.findByEmail.mockResolvedValue(existingUser);
@@ -45,6 +48,31 @@ describe('UsersService', () => {
     await expect(
       usersService.create({ email: 'john@example.com', name: 'John' }),
     ).rejects.toThrow(ConflictException);
+  });
+
+  it('create should normalize email and name before persisting', async () => {
+    usersRepository.findByEmail.mockResolvedValue(undefined);
+    usersRepository.create.mockResolvedValue({
+      id: 'f0f1f2f3-aaaa-4bbb-8ccc-0123456789ab',
+      email: 'john@example.com',
+      name: 'John',
+      created_at: new Date('2026-01-01T00:00:00.000Z'),
+      updated_at: new Date('2026-01-01T00:00:00.000Z'),
+      deleted_at: null,
+    } satisfies UserRow);
+
+    await usersService.create({
+      email: '  JOHN@EXAMPLE.COM ',
+      name: '  John  ',
+    });
+
+    expect(usersRepository.findByEmail).toHaveBeenCalledWith(
+      'john@example.com',
+    );
+    expect(usersRepository.create).toHaveBeenCalledWith({
+      email: 'john@example.com',
+      name: 'John',
+    });
   });
 
   it('findOne should throw NotFoundException when user does not exist', async () => {
@@ -56,10 +84,40 @@ describe('UsersService', () => {
   });
 
   it('remove should throw NotFoundException when delete count is zero', async () => {
-    usersRepository.deleteById.mockResolvedValue(0);
+    usersRepository.softDeleteById.mockResolvedValue(0);
 
     await expect(
       usersService.remove('99999999-aaaa-4bbb-8ccc-0123456789ab'),
     ).rejects.toThrow(NotFoundException);
+  });
+
+  it('restore should throw NotFoundException when user does not exist', async () => {
+    usersRepository.restoreById.mockResolvedValue(undefined);
+
+    await expect(
+      usersService.restore('99999999-aaaa-4bbb-8ccc-0123456789ab'),
+    ).rejects.toThrow(NotFoundException);
+  });
+
+  it('findAll should normalize and clamp filter query', async () => {
+    usersRepository.findAll.mockResolvedValue([]);
+
+    await usersService.findAll({
+      limit: 999,
+      offset: -10,
+      search: 'john',
+      deleted: 'exclude',
+      sortBy: 'created_at',
+      sortOrder: 'desc',
+    });
+
+    expect(usersRepository.findAll).toHaveBeenCalledWith(
+      expect.objectContaining({
+        limit: 100,
+        offset: 0,
+        search: 'john',
+        deleted: 'exclude',
+      }),
+    );
   });
 });
